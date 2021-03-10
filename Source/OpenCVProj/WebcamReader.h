@@ -55,7 +55,12 @@ public:
 	// The current data array
 	UPROPERTY(BlueprintReadOnly, Category = Webcam)
 		TArray<FColor> Data;
-
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+		bool IsMouseFieldSelected;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+		FVector2D MouseFieldSize;
 protected:
 
 	// Use this function to update the texture rects you want to change:

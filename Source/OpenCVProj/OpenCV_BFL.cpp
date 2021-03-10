@@ -44,6 +44,7 @@ typedef bool (*_set_mouse_field)(int x, int y, int width, int height);
 typedef bool (*_get_mouse_field)(int& x, int& y, int& width, int& height);
 typedef void (*_void_two_int_ref)(int& width, int& height);
 
+typedef void (*_get_facial_landmarks)(int face_index, float*& arr_output, int& size);
 
 _getInvertedBool m_getInvertedBoolFromDll;
 _getIntPlusPlus m_getIntPlusPlusFromDll;
@@ -77,6 +78,8 @@ _get_mouse_field m_get_mouse_field;
 _bool_func_ptr m_is_camera_opened;
 _void_two_int_ref m_get_frame_size;
 _void_two_int_ref m_resize_frame;
+_get_facial_landmarks m_get_facial_landmarks;
+
 void* v_dllHandle;
 
 
@@ -500,7 +503,12 @@ bool UOpenCV_BFL::importDllAndDllFunctions(FString folder, FString name)
             procName = "ResizeFrame";
             m_resize_frame = (_void_two_int_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_resize_frame == NULL;
-            
+
+
+            procName = "GetFacialLandmarks";
+            m_get_facial_landmarks = (_get_facial_landmarks)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+        	
             return SomeWentWrong;
         }
     }
@@ -665,6 +673,28 @@ bool UOpenCV_BFL::ResizeFrame(int32 width, int32 height)
         return true;
     }
     return false;
+}
+
+bool UOpenCV_BFL::GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLandmarks)
+{
+    int32 size_output = 0;
+    float* facial_landmarks_ptr = nullptr;
+	
+    m_get_facial_landmarks(face_index, facial_landmarks_ptr, size_output);
+    if(!facial_landmarks_ptr)
+        return false;
+	
+    if(FacialLandmarks.Num()!= 68)
+    {
+        FacialLandmarks.Init(FVector2D(0.f), 68);
+    }
+
+    for (int i = 0; i < 68; ++i)
+    {
+        FacialLandmarks[i].X = facial_landmarks_ptr[i * 2];
+        FacialLandmarks[i].Y = facial_landmarks_ptr[i * 2 + 1];
+    }
+	return true;
 }
 
 

@@ -54,8 +54,6 @@ void AWebcamReader::BeginPlay()
 		UpdateTexture();
 		OnNextVideoFrame();
 	}
-	
-
 }
 
 // Called every frame
@@ -77,6 +75,25 @@ void AWebcamReader::DoProcessing_Implementation()
 	if (ShouldResize && UOpenCV_BFL::IsCamOpened())
 	{
 		UOpenCV_BFL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
+	}
+
+	if(IsMouseFieldSelected && UOpenCV_BFL::IsMouthOpen(0))
+	{
+		IsMouseFieldSelected = false;
+		UOpenCV_BFL::SetIsSelectedNosePositionForMouseControl(false);
+	}
+	else if(!IsMouseFieldSelected && UOpenCV_BFL::IsMouthOpen(0))
+	{
+		IsMouseFieldSelected = true;
+
+		TArray<FVector2D> FacialLandmarks;
+		UOpenCV_BFL::GetFacialLandmarks(0, FacialLandmarks);
+
+		float const MouseFieldX = FacialLandmarks[30].X - MouseFieldSize.X / 2.f;
+		float const MouseFieldY = FacialLandmarks[30].Y - MouseFieldSize.Y / 2.f;
+		
+		UOpenCV_BFL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
+		UOpenCV_BFL::SetIsSelectedNosePositionForMouseControl(true);
 	}
 }
 

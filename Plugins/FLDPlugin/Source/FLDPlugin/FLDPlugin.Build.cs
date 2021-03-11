@@ -37,7 +37,7 @@ public class FLDPlugin : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
+				"SlateCore", "RHI", "RenderCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

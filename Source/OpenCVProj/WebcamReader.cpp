@@ -3,8 +3,7 @@
 
 #include "WebcamReader.h"
 
-#include "OpenCV_BFL.h"
-
+#include "FLD_BPL.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
@@ -27,20 +26,20 @@ void AWebcamReader::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UOpenCV_BFL::importDllAndDllFunctions("MyPlug", "OpenCVDLL.dll");
+	UFLD_BPL::importDllAndDllFunctions("Data", "OpenCVDLL.dll");
 
 
 	
-	int32 i = UOpenCV_BFL::InitOpenCV(CameraID, "MyPlug","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
+	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
 							200, 100);
 	UE_LOG(LogTemp, Warning, TEXT("%d"), i);
 	// Open the stream
 	
-	if (UOpenCV_BFL::IsCamOpened())
+	if (UFLD_BPL::IsCamOpened())
 	{
 		// Initialize stream
-		UOpenCV_BFL::CalculateFacialLandmarks();
-		UOpenCV_BFL::GetFrameSize(VideoSize.X, VideoSize.Y);
+		UFLD_BPL::CalculateFacialLandmarks();
+		UFLD_BPL::GetFrameSize(VideoSize.X, VideoSize.Y);
 		//size = cv::Size(ResizeDeminsions.X, ResizeDeminsions.Y);
 		VideoTexture = UTexture2D::CreateTransient(VideoSize.X, VideoSize.Y);
 		VideoTexture->UpdateResource();
@@ -61,7 +60,7 @@ void AWebcamReader::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(UOpenCV_BFL::CalculateFacialLandmarks())
+	if(UFLD_BPL::CalculateFacialLandmarks())
 	{
 		DoProcessing();
 	}	
@@ -72,37 +71,37 @@ void AWebcamReader::Tick(float DeltaTime)
 
 void AWebcamReader::DoProcessing_Implementation()
 {
-	if (ShouldResize && UOpenCV_BFL::IsCamOpened())
+	if (ShouldResize && UFLD_BPL::IsCamOpened())
 	{
-		UOpenCV_BFL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
+		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
 	}
 
-	if(IsMouseFieldSelected && UOpenCV_BFL::IsMouthOpen(0))
+	if(IsMouseFieldSelected && UFLD_BPL::IsMouthOpen(0))
 	{
 		IsMouseFieldSelected = false;
-		UOpenCV_BFL::SetIsSelectedNosePositionForMouseControl(false);
+		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(false);
 	}
-	else if(!IsMouseFieldSelected && UOpenCV_BFL::IsMouthOpen(0))
+	else if(!IsMouseFieldSelected && UFLD_BPL::IsMouthOpen(0))
 	{
 		IsMouseFieldSelected = true;
 
 		TArray<FVector2D> FacialLandmarks;
-		UOpenCV_BFL::GetFacialLandmarks(0, FacialLandmarks);
+		UFLD_BPL::GetFacialLandmarks(0, FacialLandmarks);
 
 		float const MouseFieldX = FacialLandmarks[30].X - MouseFieldSize.X / 2.f;
 		float const MouseFieldY = FacialLandmarks[30].Y - MouseFieldSize.Y / 2.f;
 		
-		UOpenCV_BFL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
-		UOpenCV_BFL::SetIsSelectedNosePositionForMouseControl(true);
+		UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
+		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
 	}
 }
 
 void AWebcamReader::UpdateTexture()
 {
-	if (UOpenCV_BFL::IsCamOpened())
+	if (UFLD_BPL::IsCamOpened())
 	{
 		// Copy Mat data to Data array
-		UOpenCV_BFL::GetFrame(Data);
+		UFLD_BPL::GetFrame(Data);
 
 		// Update texture 2D
 		UpdateTextureRegions(VideoTexture, (int32)0, (uint32)1, VideoUpdateTextureRegion, (uint32)(4 * VideoSize.X), (uint32)4, (uint8*)Data.GetData(), false);

@@ -9,6 +9,6 @@ public class OpenCVProjTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange( new string[] { "OpenCVProj" } );
+		ExtraModuleNames.AddRange( new string[] { "OpenCVProj"} );
 	}
 }

@@ -12,9 +12,12 @@ public class OpenCVProj : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
+        PrivateDependencyModuleNames.AddRange(new string[] { "FLDPlugin" });
+        PrivateIncludePathModuleNames.AddRange(new string[] { "FLDPlugin" });
+
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
+
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 

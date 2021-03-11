@@ -26,9 +26,7 @@ void AWebcamReader::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UFLD_BPL::importDllAndDllFunctions("Data", "OpenCVDLL.dll");
-
-
+	GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, this, &AWebcamReader::ValidateFunction, TimeRateValidate, true);
 	
 	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
 							200, 100);
@@ -76,15 +74,18 @@ void AWebcamReader::DoProcessing_Implementation()
 		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
 	}
 
-	if(IsMouseFieldSelected && UFLD_BPL::IsMouthOpen(0))
+	static bool LastMouthState = false;
+	
+	if(!LastMouthState && IsMouseFieldSelected && !IsMouthClose)
 	{
 		IsMouseFieldSelected = false;
+		
 		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(false);
 	}
-	else if(!IsMouseFieldSelected && UFLD_BPL::IsMouthOpen(0))
+	else if(!LastMouthState && !IsMouseFieldSelected && !IsMouthClose)
 	{
 		IsMouseFieldSelected = true;
-
+		
 		TArray<FVector2D> FacialLandmarks;
 		UFLD_BPL::GetFacialLandmarks(0, FacialLandmarks);
 
@@ -94,6 +95,9 @@ void AWebcamReader::DoProcessing_Implementation()
 		UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
 		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
 	}
+
+	LastMouthState = UFLD_BPL::IsMouthOpen(0);
+	
 }
 
 void AWebcamReader::UpdateTexture()
@@ -106,6 +110,48 @@ void AWebcamReader::UpdateTexture()
 		// Update texture 2D
 		UpdateTextureRegions(VideoTexture, (int32)0, (uint32)1, VideoUpdateTextureRegion, (uint32)(4 * VideoSize.X), (uint32)4, (uint8*)Data.GetData(), false);
 	}
+}
+
+void AWebcamReader::ValidateFunction_Implementation()
+{
+	UFLD_BPL::CalculateFacialLandmarks();
+
+	bool CurrentMouthState = UFLD_BPL::IsMouthOpen();
+	if(!CurrentMouthState == LastMouthCloseState)
+	{
+		CheckMouthCloseTime += TimeRateValidate;
+	}
+	else
+	{
+		CheckMouthCloseTime = 0.f;
+	}
+	
+	if (CheckMouthCloseTime >= ValidateMouthCloseTime)
+	{
+		IsMouthClose = LastMouthCloseState;
+		CheckMouthCloseTime = 0.f;
+	}
+	
+	LastMouthCloseState = !CurrentMouthState;
+
+	bool CurrentLeftEyeState = UFLD_BPL::IsEyeOpen(0);
+	if (CurrentLeftEyeState == LastLeftEyeOpenState)
+	{
+		CheckLeftEyeOpenTime += TimeRateValidate;
+	}
+	else
+	{
+		CheckLeftEyeOpenTime = 0.f;
+	}
+
+	if (CheckLeftEyeOpenTime >= ValidateLeftEyeOpenTime)
+	{
+		IsLeftEyeOpen = LastLeftEyeOpenState;
+		CheckLeftEyeOpenTime = 0.f;
+	}
+
+	LastLeftEyeOpenState = CurrentLeftEyeState;
+	
 }
 
 void AWebcamReader::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)

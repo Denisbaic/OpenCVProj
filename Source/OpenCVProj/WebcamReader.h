@@ -7,6 +7,10 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
+#define SET_VALIDATE_PROPERTIES(PropertyName, DefaultValue)				\
+	bool Last##PropertyName##State = DefaultValue;						\
+	float Check##PropertyName##Time;									
+
 UCLASS()
 class OPENCVPROJ_API AWebcamReader : public AActor
 {
@@ -61,8 +65,37 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
 		FVector2D MouseFieldSize;
+
+
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+		float TimeRateValidate;
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+		void ValidateFunction();
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+		float ValidateMouthCloseTime;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+		bool IsMouthClose = true;
+	SET_VALIDATE_PROPERTIES(MouthClose, true)
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+		float ValidateLeftEyeOpenTime;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+		bool IsLeftEyeOpen = true;
+	SET_VALIDATE_PROPERTIES(LeftEyeOpen, true)
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+		float ValidateRightEyeOpenTime;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+		bool IsRightEyeOpen = true;	
+	SET_VALIDATE_PROPERTIES(RightEyeOpen, true)
+	
 protected:
 
+	
+	FTimerHandle ValidateTimer_TimerHandler;
+	
 	// Use this function to update the texture rects you want to change:
 	// NOTE: There is a method called UpdateTextureRegions in UTexture2D but it is compiled WITH_EDITOR and is not marked as ENGINE_API so it cannot be linked
 	// from plugins.

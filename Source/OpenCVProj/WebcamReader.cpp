@@ -28,11 +28,13 @@ void AWebcamReader::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, this, &AWebcamReader::ValidateFunction, TimeRateValidate, true);
 	
-	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
-							200, 100);
+	//int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
+		//					200, 100);
+	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data", "shape_predictor_68_face_landmarks.dat", "lbfmodel.yaml",
+								200, 100);
 	UE_LOG(LogTemp, Warning, TEXT("%d"), i);
 	// Open the stream
-	
+	/*
 	if (UFLD_BPL::IsCamOpened())
 	{
 		// Initialize stream
@@ -51,20 +53,21 @@ void AWebcamReader::BeginPlay()
 		UpdateTexture();
 		OnNextVideoFrame();
 	}
+	*/
 }
 
 // Called every frame
 void AWebcamReader::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	/*
 	if(UFLD_BPL::CalculateFacialLandmarks())
 	{
 		DoProcessing();
 	}	
 	UpdateTexture();
 	OnNextVideoFrame();
-	
+	*/
 }
 
 void AWebcamReader::DoProcessing_Implementation()

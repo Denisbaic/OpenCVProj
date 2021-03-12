@@ -28,13 +28,13 @@ void AWebcamReader::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, this, &AWebcamReader::ValidateFunction, TimeRateValidate, true);
 	
-	//int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
-		//					200, 100);
-	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data", "shape_predictor_68_face_landmarks.dat", "lbfmodel.yaml",
-								200, 100);
+	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
+							200, 100);
+	//int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data", "shape_predictor_68_face_landmarks.dat", "lbfmodel.yaml",
+		//						200, 100);
 	UE_LOG(LogTemp, Warning, TEXT("%d"), i);
 	// Open the stream
-	/*
+	
 	if (UFLD_BPL::IsCamOpened())
 	{
 		// Initialize stream
@@ -53,21 +53,21 @@ void AWebcamReader::BeginPlay()
 		UpdateTexture();
 		OnNextVideoFrame();
 	}
-	*/
+	
 }
 
 // Called every frame
 void AWebcamReader::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*
+	
 	if(UFLD_BPL::CalculateFacialLandmarks())
 	{
 		DoProcessing();
 	}	
 	UpdateTexture();
 	OnNextVideoFrame();
-	*/
+	
 }
 
 void AWebcamReader::DoProcessing_Implementation()
@@ -118,7 +118,37 @@ void AWebcamReader::UpdateTexture()
 void AWebcamReader::ValidateFunction_Implementation()
 {
 	UFLD_BPL::CalculateFacialLandmarks();
+	
 
+	
+	if (CurrentTime > ValidateLeftEyeOpenTime)
+	{
+		CurrentTime = 0.f;
+		IsLeftEyeOpen = LeftRacingTime > 0;
+		LeftRacingTime = 0.f;
+	}
+	else
+	{
+		bool const CurrentMouthState = UFLD_BPL::IsEyeOpen(0,true,EAR);
+		LeftRacingTime = CurrentMouthState ? LeftRacingTime + TimeRateValidate : LeftRacingTime - TimeRateValidate;
+	}
+	CurrentTime += TimeRateValidate;
+	/*
+	if(CurrentTime> ValidateMouthCloseTime)
+	{
+		CurrentTime = 0.f;
+		IsMouthClose = MouthRacingTime < 0;
+		MouthRacingTime = 0.f;
+	}
+	else
+	{
+		bool const CurrentMouthState = UFLD_BPL::IsMouthOpen();
+		MouthRacingTime = CurrentMouthState ? MouthRacingTime + TimeRateValidate : MouthRacingTime - TimeRateValidate;
+	}
+	*/
+	
+	
+	/*
 	bool CurrentMouthState = UFLD_BPL::IsMouthOpen();
 	if(!CurrentMouthState == LastMouthCloseState)
 	{
@@ -137,6 +167,7 @@ void AWebcamReader::ValidateFunction_Implementation()
 	
 	LastMouthCloseState = !CurrentMouthState;
 
+	
 	bool CurrentLeftEyeState = UFLD_BPL::IsEyeOpen(0);
 	if (CurrentLeftEyeState == LastLeftEyeOpenState)
 	{
@@ -154,7 +185,7 @@ void AWebcamReader::ValidateFunction_Implementation()
 	}
 
 	LastLeftEyeOpenState = CurrentLeftEyeState;
-	
+	*/
 }
 
 void AWebcamReader::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)

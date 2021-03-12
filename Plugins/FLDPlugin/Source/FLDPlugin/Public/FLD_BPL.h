@@ -48,6 +48,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLandmarks);
 
+	
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static void freeDLL();
 };

@@ -73,16 +73,26 @@ public:
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 		void ValidateFunction();
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) 
 		float ValidateMouthCloseTime;
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsMouthClose = true;
+	float MouthRacingTime;
+
+	float CurrentTime;
+
+	
 	SET_VALIDATE_PROPERTIES(MouthClose, true)
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
 		float ValidateLeftEyeOpenTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
 		bool IsLeftEyeOpen = true;
+	float LeftRacingTime;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+		float EAR=0.2f;
+	
 	SET_VALIDATE_PROPERTIES(LeftEyeOpen, true)
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \

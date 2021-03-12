@@ -59,7 +59,7 @@ _show_frame m_show_frame;
 _stop_opencv m_stop_opencv;
 
 _init_dlib m_init_dlib;
-_stop_opencv m_show_frame_dlib;
+_void_func_ptr m_show_frame_dlib;
 
 
 _init_open_cv m_init_open_cv;
@@ -156,7 +156,7 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             procName = "GetFacialLandmarks";
             m_get_facial_landmarks = (_get_facial_landmarks)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
-
+        	
             return SomeWentWrong;
         }
     }
@@ -344,7 +344,6 @@ bool UFLD_BPL::GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLan
     }
     return true;
 }
-
 
 #pragma endregion Method Calls
 

@@ -16,9 +16,9 @@ public:
         static bool importDllAndDllFunctions(FString folder, FString name);
 
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
-        static int32 InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorFilePath, FString FaceMarkModelFilePath, int32 MouseWheelFieldWidth = 200, int32 MouseWheelFieldHeight = 100);
+        static int32 InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorConfigFilePath, FString FaceDetectorWeightsFilePath, FString FaceMarkModelFilePath, int32 MouseWheelFieldWidth = 200, int32 MouseWheelFieldHeight = 100);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
-        static bool IsEyeOpen(int32 FaceIndex = 0, bool CheckLeftEye = true, float EAR = 0.2f);
+        static bool IsEyeOpen(float& CurrentEAR, int32 FaceIndex = 0, bool CheckLeftEye = true, float EAR = 0.2f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool IsMouthOpen(int32 FaceIndex = 0, float MAR = 0.6f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")

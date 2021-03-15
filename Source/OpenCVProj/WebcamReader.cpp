@@ -28,7 +28,7 @@ void AWebcamReader::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, this, &AWebcamReader::ValidateFunction, TimeRateValidate, true);
 	
-	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","haarcascade_frontalface_alt2.xml", "lbfmodel.yaml",
+	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","deploy.prototxt", "res10_300x300_ssd_iter_140000_fp16.caffemodel", "lbfmodel.yaml",
 							200, 100);
 	//int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data", "shape_predictor_68_face_landmarks.dat", "lbfmodel.yaml",
 		//						200, 100);
@@ -129,7 +129,9 @@ void AWebcamReader::ValidateFunction_Implementation()
 	}
 	else
 	{
-		bool const CurrentMouthState = UFLD_BPL::IsEyeOpen(0,true,EAR);
+		float current_ear = 0.f;
+		bool const CurrentMouthState = UFLD_BPL::IsEyeOpen(current_ear,0,true,EAR);
+		UE_LOG(LogTemp, Warning, TEXT("%f"), current_ear);
 		LeftRacingTime = CurrentMouthState ? LeftRacingTime + TimeRateValidate : LeftRacingTime - TimeRateValidate;
 	}
 	CurrentTime += TimeRateValidate;

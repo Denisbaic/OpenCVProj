@@ -20,14 +20,15 @@ typedef int (*_init_dlib) (int cam_index, char* predictorFilePath);
 
 
 typedef int(*_init_open_cv)(int cam_index,
-    char* face_detector_cascade_file_path,
+    char* face_detector_config,
+    char* face_detector_weights,
     char* face_mark_model_file_path,
     int mouse_wheel_field_width,
     int mouse_wheel_field_height);
 
 typedef bool(*_is_eye_open)(int face_index,
     bool check_left_eye,
-    float EAR);
+    float EAR,float& CurrentEAR);
 
 typedef bool(*_is_mouth_open)(int face_index,
     float MAR);
@@ -163,23 +164,24 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
     return false;
 }
 
-int32 UFLD_BPL::InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorFilePath, FString FaceMarkModelFilePath,
+int32 UFLD_BPL::InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorConfigFilePath, FString FaceDetectorWeightsFilePath, FString FaceMarkModelFilePath,
     int32 MouseWheelFieldWidth, int32 MouseWheelFieldHeight)
 {
     if (m_init_open_cv != NULL)
     {
-        const FString filePathCascade = *FPaths::ProjectContentDir() + Folder + "/" + FaceDetectorFilePath;
+        const FString filePathConfig = *FPaths::ProjectContentDir() + Folder + "/" + FaceDetectorConfigFilePath;
+        const FString filePathWeights = *FPaths::ProjectContentDir() + Folder + "/" + FaceDetectorWeightsFilePath;
         const FString filePathModel = *FPaths::ProjectContentDir() + Folder + "/" + FaceMarkModelFilePath;
-        return m_init_open_cv(CamIndex, TCHAR_TO_ANSI(*filePathCascade), TCHAR_TO_ANSI(*filePathModel), MouseWheelFieldWidth, MouseWheelFieldHeight);
+        return m_init_open_cv(CamIndex, TCHAR_TO_ANSI(*filePathConfig), TCHAR_TO_ANSI(*filePathWeights), TCHAR_TO_ANSI(*filePathModel), MouseWheelFieldWidth, MouseWheelFieldHeight);
     }
 
     return -1;
 }
 
-bool UFLD_BPL::IsEyeOpen(int32 FaceIndex, bool CheckLeftEye, float EAR)
+bool UFLD_BPL::IsEyeOpen(float& CurrentEAR, int32 FaceIndex, bool CheckLeftEye, float EAR)
 {
     if (m_is_eye_open != NULL)
-        return m_is_eye_open(FaceIndex, CheckLeftEye, EAR);
+        return m_is_eye_open(FaceIndex, CheckLeftEye, EAR, CurrentEAR);
     return true;
 }
 

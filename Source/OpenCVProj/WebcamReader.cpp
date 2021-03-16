@@ -115,79 +115,58 @@ void AWebcamReader::UpdateTexture()
 	}
 }
 
+#define EYE_VALIDATE(EyeSide, IsLeftSide)																								\
+if (Current##EyeSide##EyeTime > Validate##EyeSide##EyeOpenTime)																			\
+{																																		\
+	Current##EyeSide##EyeTime = 0.f;																									\
+	Is##EyeSide##EyeOpen = EyeSide##EyeRacingTime > 0;																					\
+	EyeSide##EyeRacingTime = 0.f;																										\
+}																																		\
+else																																	\
+{																																		\
+	float current_ear;																													\
+	bool const bCurrentEyeState = UFLD_BPL::IsEyeOpen(current_ear, 0, IsLeftSide, EAR);													\
+	/*UE_LOG(LogTemp, Warning, TEXT("%f"), current_ear);*/																				\
+	EyeSide##EyeRacingTime = bCurrentEyeState ? EyeSide##EyeRacingTime + TimeRateValidate : EyeSide##EyeRacingTime - TimeRateValidate;	\
+}																																		\
+Current##EyeSide##EyeTime += TimeRateValidate;																									
+
+
 void AWebcamReader::ValidateFunction_Implementation()
 {
 	UFLD_BPL::CalculateFacialLandmarks();
-	
-
-	
-	if (CurrentTime > ValidateLeftEyeOpenTime)
+	/*
+	if (CurrentLeftEyeTime > ValidateLeftEyeOpenTime)
 	{
-		CurrentTime = 0.f;
-		IsLeftEyeOpen = LeftRacingTime > 0;
-		LeftRacingTime = 0.f;
+		CurrentLeftEyeTime = 0.f;
+		IsLeftEyeOpen = LeftEyeRacingTime > 0;
+		LeftEyeRacingTime = 0.f;
 	}
 	else
 	{
-		float current_ear = 0.f;
-		bool const CurrentMouthState = UFLD_BPL::IsEyeOpen(current_ear,0,true,EAR);
+		float current_ear;
+		bool const bCurrentEyeState = UFLD_BPL::IsEyeOpen(current_ear,0,true,EAR);
 		UE_LOG(LogTemp, Warning, TEXT("%f"), current_ear);
-		LeftRacingTime = CurrentMouthState ? LeftRacingTime + TimeRateValidate : LeftRacingTime - TimeRateValidate;
+		LeftEyeRacingTime = bCurrentEyeState ? LeftEyeRacingTime + TimeRateValidate : LeftEyeRacingTime - TimeRateValidate;
 	}
-	CurrentTime += TimeRateValidate;
-	/*
-	if(CurrentTime> ValidateMouthCloseTime)
+	CurrentLeftEyeTime += TimeRateValidate;
+	*/
+	
+	EYE_VALIDATE(Left,true)
+	EYE_VALIDATE(Right,false)
+
+	if (CurrentMouthTime > ValidateMouthCloseTime)
 	{
-		CurrentTime = 0.f;
+		CurrentMouthTime = 0.f;
 		IsMouthClose = MouthRacingTime < 0;
 		MouthRacingTime = 0.f;
 	}
 	else
 	{
-		bool const CurrentMouthState = UFLD_BPL::IsMouthOpen();
-		MouthRacingTime = CurrentMouthState ? MouthRacingTime + TimeRateValidate : MouthRacingTime - TimeRateValidate;
+		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(0, MAR);
+		
+		MouthRacingTime = bCurrentMouthState ? bCurrentMouthState + TimeRateValidate : bCurrentMouthState - TimeRateValidate;
 	}
-	*/
-	
-	
-	/*
-	bool CurrentMouthState = UFLD_BPL::IsMouthOpen();
-	if(!CurrentMouthState == LastMouthCloseState)
-	{
-		CheckMouthCloseTime += TimeRateValidate;
-	}
-	else
-	{
-		CheckMouthCloseTime = 0.f;
-	}
-	
-	if (CheckMouthCloseTime >= ValidateMouthCloseTime)
-	{
-		IsMouthClose = LastMouthCloseState;
-		CheckMouthCloseTime = 0.f;
-	}
-	
-	LastMouthCloseState = !CurrentMouthState;
-
-	
-	bool CurrentLeftEyeState = UFLD_BPL::IsEyeOpen(0);
-	if (CurrentLeftEyeState == LastLeftEyeOpenState)
-	{
-		CheckLeftEyeOpenTime += TimeRateValidate;
-	}
-	else
-	{
-		CheckLeftEyeOpenTime = 0.f;
-	}
-
-	if (CheckLeftEyeOpenTime >= ValidateLeftEyeOpenTime)
-	{
-		IsLeftEyeOpen = LastLeftEyeOpenState;
-		CheckLeftEyeOpenTime = 0.f;
-	}
-
-	LastLeftEyeOpenState = CurrentLeftEyeState;
-	*/
 }
 
 void AWebcamReader::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)

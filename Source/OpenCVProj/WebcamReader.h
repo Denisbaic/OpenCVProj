@@ -7,9 +7,9 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
-#define SET_VALIDATE_PROPERTIES(PropertyName, DefaultValue)				\
-	bool Last##PropertyName##State = DefaultValue;						\
-	float Check##PropertyName##Time;									
+#define SET_VALIDATE_PROPERTIES(PropertyName)				\
+	float PropertyName##RacingTime = 0.f;						\
+	float Current##PropertyName##Time = 0.f;									
 
 UCLASS()
 class OPENCVPROJ_API AWebcamReader : public AActor
@@ -77,32 +77,29 @@ public:
 		float ValidateMouthCloseTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsMouthClose = true;
-	float MouthRacingTime;
-
-	float CurrentTime;
-
-	
-	SET_VALIDATE_PROPERTIES(MouthClose, true)
+		
+	SET_VALIDATE_PROPERTIES(Mouth)
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
 		float ValidateLeftEyeOpenTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
 		bool IsLeftEyeOpen = true;
-	float LeftRacingTime;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
-		float EAR=0.2f;
 	
-	SET_VALIDATE_PROPERTIES(LeftEyeOpen, true)
+	SET_VALIDATE_PROPERTIES(LeftEye)
+
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
 		float ValidateRightEyeOpenTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
-		bool IsRightEyeOpen = true;	
-	SET_VALIDATE_PROPERTIES(RightEyeOpen, true)
+		bool IsRightEyeOpen = true;
 	
-protected:
+	SET_VALIDATE_PROPERTIES(RightEye)
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+		float MAR = 0.6f;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+	float EAR = 0.2f;
+protected:
 	
 	FTimerHandle ValidateTimer_TimerHandler;
 	

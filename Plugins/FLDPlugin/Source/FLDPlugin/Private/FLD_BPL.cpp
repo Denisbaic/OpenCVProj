@@ -3,6 +3,8 @@
 #include "FLD_BPL.h"
 #include "FLDPlugin.h"
 
+#define FLD_NOSE_INDEX 30
+
 typedef bool(*_getInvertedBool)(bool boolState); // Declare a method to store the DLL method getInvertedBool.
 typedef int(*_getIntPlusPlus)(int lastInt); // Declare a method to store the DLL method getIntPlusPlus.
 typedef float(*_getCircleArea)(float radius); // Declare a method to store the DLL method getCircleArea.
@@ -40,47 +42,53 @@ typedef void (*_get_frame)(unsigned char*& OutputFrame);
 
 typedef void (*_void_bool_ptr)(bool NewValue);
 
-typedef bool (*_set_mouse_field)(int x, int y, int width, int height);
-typedef bool (*_get_mouse_field)(int& x, int& y, int& width, int& height);
+typedef void (*_set_mouse_field)(int x, int y, int width, int height);
+typedef void (*_get_mouse_field)(int& x, int& y, int& width, int& height);
 typedef void (*_void_two_int_ref)(int& width, int& height);
+typedef void (*_void_two_int)(int width, int height);
 
 typedef void (*_get_facial_landmarks)(int face_index, float*& arr_output, int& size);
 
-_getInvertedBool m_getInvertedBoolFromDll;
-_getIntPlusPlus m_getIntPlusPlusFromDll;
-_getCircleArea m_getCircleAreaFromDll;
-_getCharArray m_getCharArrayFromDll;
-_getVector4 m_getVector4FromDll;
+typedef void (*_void_three_float)(float R, float G, float B);
+typedef void (*_void_three_float_ref)(float& R, float& G, float& B);
 
-_invertBool m_invertBoolFromDll;
-_getBool m_getBoolFromDll;
+_getInvertedBool m_getInvertedBoolFromDll = nullptr;
+_getIntPlusPlus m_getIntPlusPlusFromDll= nullptr;
+_getCircleArea m_getCircleAreaFromDll= nullptr;
+_getCharArray m_getCharArrayFromDll= nullptr;
+_getVector4 m_getVector4FromDll= nullptr;
 
-_init_opencv m_init_opencv;
-_show_frame m_show_frame;
-_stop_opencv m_stop_opencv;
+_invertBool m_invertBoolFromDll= nullptr;
+_getBool m_getBoolFromDll= nullptr;
 
-_init_dlib m_init_dlib;
-_void_func_ptr m_show_frame_dlib;
+_init_opencv m_init_opencv= nullptr;
+_show_frame m_show_frame= nullptr;
+_stop_opencv m_stop_opencv= nullptr;
+
+_init_dlib m_init_dlib= nullptr;
+_void_func_ptr m_show_frame_dlib= nullptr;
 
 
-_init_open_cv m_init_open_cv;
-_is_eye_open m_is_eye_open;
-_is_mouth_open m_is_mouth_open;
-_bool_func_ptr m_calculate_facial_landmarks;
-_get_frame m_get_frame;
-_void_func_ptr m_stop_open_cv;
-_void_bool_ptr m_set_is_need_to_show_bbox;
-_bool_func_ptr m_get_is_need_to_show_bbox;
-_void_bool_ptr m_set_is_selected_nose_position_for_mouse_control;
-_bool_func_ptr m_get_is_selected_nose_position_for_mouse_control;
-_set_mouse_field m_set_mouse_field;
-_get_mouse_field m_get_mouse_field;
-_bool_func_ptr m_is_camera_opened;
-_void_two_int_ref m_get_frame_size;
-_void_two_int_ref m_resize_frame;
-_get_facial_landmarks m_get_facial_landmarks;
+_init_open_cv m_init_open_cv= nullptr;
+_is_eye_open m_is_eye_open= nullptr;
+_is_mouth_open m_is_mouth_open= nullptr;
+_bool_func_ptr m_calculate_facial_landmarks= nullptr;
+_get_frame m_get_frame= nullptr;
+_void_func_ptr m_stop_open_cv= nullptr;
+_void_bool_ptr m_set_is_need_to_show_bbox= nullptr;
+_bool_func_ptr m_get_is_need_to_show_bbox= nullptr;
+_void_bool_ptr m_set_is_selected_nose_position_for_mouse_control= nullptr;
+_bool_func_ptr m_get_is_selected_nose_position_for_mouse_control= nullptr;
+_set_mouse_field m_set_mouse_field= nullptr;
+_get_mouse_field m_get_mouse_field= nullptr;
+_bool_func_ptr m_is_camera_opened= nullptr;
+_void_two_int_ref m_get_frame_size= nullptr;
+_void_two_int m_resize_frame= nullptr;
+_get_facial_landmarks m_get_facial_landmarks= nullptr;
+_void_three_float m_set_ui_color = nullptr;
+_void_three_float_ref m_get_ui_color = nullptr;
 
-void* v_dllHandle;
+void* v_dllHandle= nullptr;
 
 bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
 {
@@ -137,10 +145,10 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             m_set_mouse_field = (_set_mouse_field)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_set_mouse_field == NULL;
 
-            procName = "GetIsSelectedNosePositionForMouseControl";
+            procName = "GetMouseField";
             m_get_mouse_field = (_get_mouse_field)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_get_mouse_field == NULL;
-
+        	
             procName = "IsCamOpened";
             m_is_camera_opened = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_is_camera_opened == NULL;
@@ -150,12 +158,19 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             SomeWentWrong = SomeWentWrong || m_get_frame_size == NULL;
 
             procName = "ResizeFrame";
-            m_resize_frame = (_void_two_int_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            m_resize_frame = (_void_two_int)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_resize_frame == NULL;
-
-
+            
             procName = "GetFacialLandmarks";
             m_get_facial_landmarks = (_get_facial_landmarks)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+
+            procName = "SetUIColor";
+            m_set_ui_color = (_void_three_float)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+
+            procName = "GetUIColor";
+            m_get_ui_color = (_void_three_float_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
         	
             return SomeWentWrong;
@@ -202,7 +217,8 @@ bool UFLD_BPL::CalculateFacialLandmarks()
 bool UFLD_BPL::GetFrame(TArray<FColor>& Frame)
 {
     int32 h = 0; int32 w = 0;
-    GetFrameSize(w, h);
+    if (!GetFrameSize(w, h))
+        return false;
     if (Frame.Num() != h * w)
         Frame.Init(FColor(0, 0, 0, 255), h * w);
 
@@ -330,6 +346,9 @@ bool UFLD_BPL::GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLan
     int32 size_output = 0;
     float* facial_landmarks_ptr = nullptr;
 
+    if (!m_get_facial_landmarks)
+        return false;
+
     m_get_facial_landmarks(face_index, facial_landmarks_ptr, size_output);
     if (!facial_landmarks_ptr)
         return false;
@@ -344,6 +363,54 @@ bool UFLD_BPL::GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLan
         FacialLandmarks[i].X = facial_landmarks_ptr[i * 2];
         FacialLandmarks[i].Y = facial_landmarks_ptr[i * 2 + 1];
     }
+    return true;
+}
+
+bool UFLD_BPL::SetUIColor(FColor UIColor)
+{
+    if (m_set_ui_color != NULL)
+    {
+        m_set_ui_color(UIColor.R, UIColor.G, UIColor.B);
+        return true;
+    }
+    return false;
+}
+
+bool UFLD_BPL::GetUIColor(float& R, float& G, float& B)
+{
+    if (m_get_ui_color != NULL)
+    {
+        m_get_ui_color(R, G, B);
+        return true;
+    }
+    return false;
+}
+
+bool UFLD_BPL::GetMouseDirection(int32 face_index, FVector2D& mouse_dir_out, bool IsNeedToRecalculate)
+{
+    if (!GetIsSelectedNosePositionForMouseControl())
+        return false;
+	
+    if (!m_get_facial_landmarks)
+        return false;
+	
+    if (IsNeedToRecalculate)
+        CalculateFacialLandmarks();
+
+    int32 size_output = 0;
+    float* facial_landmarks_ptr = nullptr;
+
+    m_get_facial_landmarks(face_index, facial_landmarks_ptr, size_output);
+    if (!facial_landmarks_ptr)
+        return false;
+
+    FVector2D const NosePosition(facial_landmarks_ptr[FLD_NOSE_INDEX * 2], facial_landmarks_ptr[FLD_NOSE_INDEX * 2 + 1]);
+
+    int32 x =0, y =0, width =0, height =0;
+    GetMouseField(x, y, width, height);
+    FVector2D const MouseFieldCenter(x + width / 2.f, y + height / 2.f);
+
+    mouse_dir_out = NosePosition - MouseFieldCenter;
     return true;
 }
 

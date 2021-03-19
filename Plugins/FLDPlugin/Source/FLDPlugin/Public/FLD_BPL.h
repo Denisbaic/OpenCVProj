@@ -48,6 +48,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLandmarks);
 
+    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        static bool SetUIColor(FColor UIColor);
+    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        static bool GetUIColor(float& R, float& G, float& B);
+	
+    UFUNCTION(BlueprintCallable, Category = "Extended Functions")
+        static bool GetMouseDirection(int32 face_index, FVector2D& mouse_dir_out, bool IsNeedToRecalculate = false);
 	
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static void freeDLL();

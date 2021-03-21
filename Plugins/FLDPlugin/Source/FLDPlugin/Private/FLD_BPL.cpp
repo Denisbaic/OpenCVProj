@@ -35,6 +35,8 @@ typedef bool(*_is_eye_open)(int face_index,
 typedef bool(*_is_mouth_open)(int face_index,
     float MAR);
 
+typedef bool(*_is_eyebrowns_raised)(int face_index, float BAR, float& current_bar);
+
 typedef bool (*_bool_func_ptr)();
 typedef void (*_void_func_ptr)();
 
@@ -72,6 +74,7 @@ _void_func_ptr m_show_frame_dlib= nullptr;
 _init_open_cv m_init_open_cv= nullptr;
 _is_eye_open m_is_eye_open= nullptr;
 _is_mouth_open m_is_mouth_open= nullptr;
+_is_eyebrowns_raised m_is_eyebrowns_raised = nullptr;
 _bool_func_ptr m_calculate_facial_landmarks= nullptr;
 _get_frame m_get_frame= nullptr;
 _void_func_ptr m_stop_open_cv= nullptr;
@@ -112,7 +115,12 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             procName = "IsMouthOpen";
             m_is_mouth_open = (_is_mouth_open)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_is_mouth_open == NULL;
-
+            
+        	
+            procName = "IsEyebrowsRaised";
+            m_is_eyebrowns_raised = (_is_eyebrowns_raised)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_is_eyebrowns_raised == NULL;
+        	
             procName = "CalculateFacialLandmarks";
             m_calculate_facial_landmarks = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_calculate_facial_landmarks == NULL;
@@ -205,6 +213,13 @@ bool UFLD_BPL::IsMouthOpen(int32 FaceIndex, float MAR)
     if (m_is_mouth_open != NULL)
         return m_is_mouth_open(FaceIndex, MAR);
     return false;
+}
+
+bool UFLD_BPL::IsEyebrowsRaised(float& CurrentBAR, int32 FaceIndex, float BAR)
+{
+    if (m_is_eyebrowns_raised != NULL)
+        return m_is_eyebrowns_raised(FaceIndex, BAR,CurrentBAR);
+    return false;    
 }
 
 bool UFLD_BPL::CalculateFacialLandmarks()

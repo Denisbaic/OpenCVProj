@@ -22,6 +22,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool IsMouthOpen(int32 FaceIndex = 0, float MAR = 0.6f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        static bool IsEyebrowsRaised(float& CurrentBAR, int32 FaceIndex = 0, float BAR = 1.57f);
+    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool CalculateFacialLandmarks();
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool GetFrame(UPARAM(ref) TArray<FColor>& Frame);

@@ -25,8 +25,10 @@ public class FLDPlugin : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-				// ... add other public dependencies that you statically link with here ...
+                "Core",
+                "CoreUObject",
+                "Engine",
+                "InputCore"
 			}
 			);
 			
@@ -37,7 +39,7 @@ public class FLDPlugin : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore", "RHI", "RenderCore",
+				"SlateCore", "RHI", "RenderCore", "UMG" 
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

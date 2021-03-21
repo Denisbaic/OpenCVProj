@@ -7,7 +7,15 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
-#define SET_VALIDATE_PROPERTIES(PropertyName)				\
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeClose);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeOpen);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeClose);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeOpen);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSquint);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickModeChange,bool,IsEnable);
+
+
+#define SET_VALIDATE_PROPERTIES(PropertyName)				    \
 	float PropertyName##RacingTime = 0.f;						\
 	float Current##PropertyName##Time = 0.f;									
 
@@ -64,9 +72,17 @@ public:
 		bool IsMouseFieldSelected;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
-		FVector2D MouseFieldSize;
+		FVector2D MouseFieldSize = {200.f,100.f};
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+		bool bNeedFlipVerticalAxis = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+		bool bNeedFlipHorizontalAxis = false;
 
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+		bool bIsClickMode = false;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void Click();
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float TimeRateValidate;
@@ -80,25 +96,49 @@ public:
 		
 	SET_VALIDATE_PROPERTIES(Mouth)
 	
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateLeftEyeOpenTime;
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsLeftEyeOpen = true;
 	
 	SET_VALIDATE_PROPERTIES(LeftEye)
 
 	
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) \
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateRightEyeOpenTime;
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)\
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsRightEyeOpen = true;
 	
 	SET_VALIDATE_PROPERTIES(RightEye)
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
-		float MAR = 0.6f;
+		float ValidateSquintTime;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
+		bool IsSquint = false;
+
+	SET_VALIDATE_PROPERTIES(Squint)
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+	float MAR = 0.6f;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float EAR = 0.2f;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSquint OnSquint;
+	UPROPERTY(BlueprintAssignable)
+	FOnLeftEyeClose OnLeftEyeClose;
+	UPROPERTY(BlueprintAssignable)
+	FOnRightEyeClose OnRightEyeClose;
+	UPROPERTY(BlueprintAssignable)
+	FOnLeftEyeOpen OnLeftEyeOpen;
+	UPROPERTY(BlueprintAssignable)
+	FOnRightEyeOpen OnRightEyeOpen;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnClickModeChange OnClickModeChange;
+
+	UFUNCTION(BlueprintPure, Category = Validate)
+	bool IsScrollModeEnabled() const;
 protected:
 	
 	FTimerHandle ValidateTimer_TimerHandler;

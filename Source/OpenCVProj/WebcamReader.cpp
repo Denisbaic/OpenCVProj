@@ -3,6 +3,8 @@
 
 #include "WebcamReader.h"
 
+
+#include "CamMouseCursorSettings.h"
 #include "FLD_BPL.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
@@ -98,8 +100,25 @@ void AWebcamReader::DoProcessing_Implementation()
 		UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
 		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
 	}
+		
+	LastMouthState = !IsMouthClose;
 
-	LastMouthState = UFLD_BPL::IsMouthOpen(0);
+	if (IsMouseFieldSelected)
+	{
+		FVector2D MouseInput;
+		UFLD_BPL::GetMouseDirection(0, MouseInput);
+
+		int32 x, y, width, height;
+		UFLD_BPL::GetMouseField(x, y, width, height);
+
+		MouseInput.X /= width/2.f;
+		MouseInput.Y /= height/2.f;
+		MouseInput.X = bNeedFlipHorizontalAxis ? MouseInput.X : -MouseInput.X;
+		MouseInput.Y = bNeedFlipVerticalAxis ? MouseInput.Y : -MouseInput.Y;
+		TSharedPtr<FGameAnalogCursor> CursorPtr = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
+		if(CursorPtr)
+			CursorPtr->SetInputVector(MouseInput);
+	}
 	
 }
 
@@ -131,6 +150,10 @@ else																																	\
 }																																		\
 Current##EyeSide##EyeTime += TimeRateValidate;																									
 
+bool LeftEyeLastState = true;
+bool RightEyeLastState = true;
+
+bool EyebrowsLastState = false;
 
 void AWebcamReader::ValidateFunction_Implementation()
 {
@@ -152,9 +175,16 @@ void AWebcamReader::ValidateFunction_Implementation()
 	CurrentLeftEyeTime += TimeRateValidate;
 	*/
 	
-	EYE_VALIDATE(Left,true)
-	EYE_VALIDATE(Right,false)
+	EYE_VALIDATE(Left, true);
+	EYE_VALIDATE(Right, false);
 
+	if(IsMouseFieldSelected && bIsClickMode && LeftEyeLastState && RightEyeLastState && !IsLeftEyeOpen && !IsRightEyeOpen)
+	{
+		Click();
+	}
+	LeftEyeLastState = IsLeftEyeOpen;
+	RightEyeLastState = IsRightEyeOpen;
+		
 	if (CurrentMouthTime > ValidateMouthCloseTime)
 	{
 		CurrentMouthTime = 0.f;
@@ -165,8 +195,47 @@ void AWebcamReader::ValidateFunction_Implementation()
 	{
 		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(0, MAR);
 		
-		MouthRacingTime = bCurrentMouthState ? bCurrentMouthState + TimeRateValidate : bCurrentMouthState - TimeRateValidate;
+		MouthRacingTime = bCurrentMouthState ? MouthRacingTime + TimeRateValidate : MouthRacingTime - TimeRateValidate;
 	}
+	CurrentMouthTime += TimeRateValidate;
+
+	if (CurrentSquintTime > ValidateSquintTime)
+	{
+		CurrentSquintTime = 0.f;
+		IsSquint = SquintRacingTime > 0;
+		SquintRacingTime = 0.f;
+	}
+	else
+	{
+		SquintRacingTime = !IsLeftEyeOpen && !IsRightEyeOpen ? SquintRacingTime + TimeRateValidate : SquintRacingTime - TimeRateValidate;
+	}
+	CurrentSquintTime += TimeRateValidate;
+
+	float CurrentBar = 0.95f;
+	bool CurrentEyebrowsState = UFLD_BPL::IsEyebrowsRaised(CurrentBar, 0);
+	if(IsMouseFieldSelected && !EyebrowsLastState && CurrentEyebrowsState)
+	{
+		bIsClickMode = !bIsClickMode;
+		OnClickModeChange.Broadcast(bIsClickMode);
+	}
+	EyebrowsLastState = CurrentEyebrowsState;
+
+	//TArray<FVector2D> p;
+	//UFLD_BPL::GetFacialLandmarks(0, p);
+	//float BAR = FVector2D::Distance(p[27], p[22]) + FVector2D::Distance(p[27], p[23]) + FVector2D::Distance(p[27], p[24]) + FVector2D::Distance(p[27], p[25]) + FVector2D::Distance(p[27], p[26]) +
+	//	FVector2D::Distance(p[16], p[22]) + FVector2D::Distance(p[16], p[23]) + FVector2D::Distance(p[16], p[24]) + FVector2D::Distance(p[16], p[25]) + FVector2D::Distance(p[16], p[26]);
+	//BAR /= 4.f* FMath::Max(FVector2D::Distance(p[27], p[16]), FVector2D::Distance(p[27], p[0]));
+	//float BAR = FVector2D::Distance(p[8], p[22]) + FVector2D::Distance(p[8], p[23]) + FVector2D::Distance(p[8], p[24]) + FVector2D::Distance(p[8], p[25]) + FVector2D::Distance(p[8], p[26]);
+	//BAR /= 4.f * (FVector2D::Distance(p[8], p[27]));
+
+	//float BAR_out;
+	//UFLD_BPL::IsEyebrowsRaised(BAR_out);
+	//UE_LOG(LogTemp, Warning, TEXT("%f"), BAR_out);
+}
+
+bool AWebcamReader::IsScrollModeEnabled() const
+{
+	return !bIsClickMode && IsSquint && IsMouseFieldSelected;
 }
 
 void AWebcamReader::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)

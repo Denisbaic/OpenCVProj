@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeClose);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeOpen);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSquint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickModeChange,bool,IsEnable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
 
 
 #define SET_VALIDATE_PROPERTIES(PropertyName)				    \
@@ -133,12 +134,18 @@ public:
 	FOnLeftEyeOpen OnLeftEyeOpen;
 	UPROPERTY(BlueprintAssignable)
 	FOnRightEyeOpen OnRightEyeOpen;
-	
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGetInput OnGetInput;
+		
 	UPROPERTY(BlueprintAssignable)
 	FOnClickModeChange OnClickModeChange;
 
 	UFUNCTION(BlueprintPure, Category = Validate)
 	bool IsScrollModeEnabled() const;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
+	bool bIsInCursorMode;
 protected:
 	
 	FTimerHandle ValidateTimer_TimerHandler;

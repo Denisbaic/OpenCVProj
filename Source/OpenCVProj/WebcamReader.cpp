@@ -5,6 +5,7 @@
 
 
 #include "CamMouseCursorSettings.h"
+#include "Cursor_BPL.h"
 #include "FLD_BPL.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
@@ -115,9 +116,22 @@ void AWebcamReader::DoProcessing_Implementation()
 		MouseInput.Y /= height/2.f;
 		MouseInput.X = bNeedFlipHorizontalAxis ? MouseInput.X : -MouseInput.X;
 		MouseInput.Y = bNeedFlipVerticalAxis ? MouseInput.Y : -MouseInput.Y;
-		TSharedPtr<FGameAnalogCursor> CursorPtr = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
-		if(CursorPtr)
-			CursorPtr->SetInputVector(MouseInput);
+
+		if(IsScrollModeEnabled())
+		{
+			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
+			UVirtualCursorFunctionLibrary::WheelInput(MouseInput.Y, GetActorTickInterval());
+			//CursorPtr->TriggerWheel(MouseInput.Y, GetWorld()->GetDeltaSeconds());
+		}
+		else if(bIsInCursorMode)
+		{
+			UVirtualCursorFunctionLibrary::MoveMouse(MouseInput, GetActorTickInterval());
+		}
+		else
+		{
+			UVirtualCursorFunctionLibrary::MoveMouse(MouseInput, GetActorTickInterval());
+			OnGetInput.Broadcast(MouseInput);
+		}
 	}
 	
 }

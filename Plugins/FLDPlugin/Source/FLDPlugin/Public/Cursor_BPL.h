@@ -28,4 +28,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game")
 		static void RightClick();
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+		static void WheelInput(float Input, float DeltaTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+		static void MoveMouse(FVector2D Input, float DeltaTime);
 };

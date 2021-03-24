@@ -3,8 +3,6 @@
 
 #include "WebcamReader.h"
 
-
-#include "CamMouseCursorSettings.h"
 #include "Cursor_BPL.h"
 #include "FLD_BPL.h"
 // Fill out your copyright notice in the Description page of Project Settings.
@@ -29,7 +27,7 @@ void AWebcamReader::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, this, &AWebcamReader::ValidateFunction, TimeRateValidate, true);
+	
 	
 	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","deploy.prototxt", "res10_300x300_ssd_iter_140000_fp16.caffemodel", "lbfmodel.yaml",
 							200, 100);
@@ -51,10 +49,14 @@ void AWebcamReader::BeginPlay()
 		// Initialize data array
 		Data.Init(FColor(0, 0, 0, 255), VideoSize.X * VideoSize.Y);
 
+		GetWorldTimerManager().SetTimer(RenderTimer_TimerHandler, this, &AWebcamReader::UpdateTexture, RenderTimeInterval, true, 0.0f);
+		FTimerDelegate TimerDel;
+		TimerDel.BindUFunction(this, FName("ValidateFunction"), TimeRateValidate);
+		GetWorldTimerManager().SetTimer(ValidateTimer_TimerHandler, TimerDel, TimeRateValidate,true);
+
 		// Do first frame
 		DoProcessing();
-		UpdateTexture();
-		OnNextVideoFrame();
+
 	}
 	
 }
@@ -64,17 +66,17 @@ void AWebcamReader::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if(UFLD_BPL::CalculateFacialLandmarks())
-	{
+	//if(UFLD_BPL::CalculateFacialLandmarks())
+	//{
+		//float temp = GetWorld()->GetDeltaSeconds();
+		//ValidateFunction(DeltaTime);
 		DoProcessing();
-	}	
-	UpdateTexture();
-	OnNextVideoFrame();
-	
+	//}	
 }
 
 void AWebcamReader::DoProcessing_Implementation()
 {
+	
 	if (ShouldResize && UFLD_BPL::IsCamOpened())
 	{
 		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
@@ -104,6 +106,16 @@ void AWebcamReader::DoProcessing_Implementation()
 		
 	LastMouthState = !IsMouthClose;
 
+	static bool EyebrowsLastState = false;
+	
+	if (IsMouseFieldSelected && !EyebrowsLastState && IsRaisedEyebrows)
+	{
+		bIsClickMode = !bIsClickMode;
+		OnClickModeChange.Broadcast(bIsClickMode);
+	}
+	EyebrowsLastState = IsRaisedEyebrows;
+	
+	
 	if (IsMouseFieldSelected)
 	{
 		FVector2D MouseInput;
@@ -121,7 +133,6 @@ void AWebcamReader::DoProcessing_Implementation()
 		{
 			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
 			UVirtualCursorFunctionLibrary::WheelInput(MouseInput.Y, GetActorTickInterval());
-			//CursorPtr->TriggerWheel(MouseInput.Y, GetWorld()->GetDeltaSeconds());
 		}
 		else if(bIsInCursorMode)
 		{
@@ -145,6 +156,7 @@ void AWebcamReader::UpdateTexture()
 
 		// Update texture 2D
 		UpdateTextureRegions(VideoTexture, (int32)0, (uint32)1, VideoUpdateTextureRegion, (uint32)(4 * VideoSize.X), (uint32)4, (uint8*)Data.GetData(), false);
+		OnNextVideoFrame();
 	}
 }
 
@@ -160,16 +172,14 @@ else																																	\
 	float current_ear;																													\
 	bool const bCurrentEyeState = UFLD_BPL::IsEyeOpen(current_ear, 0, IsLeftSide, EAR);													\
 	/*UE_LOG(LogTemp, Warning, TEXT("%f"), current_ear);*/																				\
-	EyeSide##EyeRacingTime = bCurrentEyeState ? EyeSide##EyeRacingTime + TimeRateValidate : EyeSide##EyeRacingTime - TimeRateValidate;	\
+	EyeSide##EyeRacingTime = bCurrentEyeState ? EyeSide##EyeRacingTime + DeltaTime : EyeSide##EyeRacingTime - DeltaTime;				\
 }																																		\
-Current##EyeSide##EyeTime += TimeRateValidate;																									
+Current##EyeSide##EyeTime += DeltaTime;																									
 
 bool LeftEyeLastState = true;
 bool RightEyeLastState = true;
 
-bool EyebrowsLastState = false;
-
-void AWebcamReader::ValidateFunction_Implementation()
+void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 {
 	UFLD_BPL::CalculateFacialLandmarks();
 	/*
@@ -184,14 +194,15 @@ void AWebcamReader::ValidateFunction_Implementation()
 		float current_ear;
 		bool const bCurrentEyeState = UFLD_BPL::IsEyeOpen(current_ear,0,true,EAR);
 		UE_LOG(LogTemp, Warning, TEXT("%f"), current_ear);
-		LeftEyeRacingTime = bCurrentEyeState ? LeftEyeRacingTime + TimeRateValidate : LeftEyeRacingTime - TimeRateValidate;
+		LeftEyeRacingTime = bCurrentEyeState ? LeftEyeRacingTime + DeltaTime : LeftEyeRacingTime - DeltaTime;
 	}
-	CurrentLeftEyeTime += TimeRateValidate;
+	CurrentLeftEyeTime += DeltaTime;
 	*/
 	
 	EYE_VALIDATE(Left, true);
 	EYE_VALIDATE(Right, false);
 
+	
 	if(IsMouseFieldSelected && bIsClickMode && LeftEyeLastState && RightEyeLastState && !IsLeftEyeOpen && !IsRightEyeOpen)
 	{
 		Click();
@@ -209,9 +220,9 @@ void AWebcamReader::ValidateFunction_Implementation()
 	{
 		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(0, MAR);
 		
-		MouthRacingTime = bCurrentMouthState ? MouthRacingTime + TimeRateValidate : MouthRacingTime - TimeRateValidate;
+		MouthRacingTime = bCurrentMouthState ? MouthRacingTime + DeltaTime : MouthRacingTime - DeltaTime;
 	}
-	CurrentMouthTime += TimeRateValidate;
+	CurrentMouthTime += DeltaTime;
 
 	if (CurrentSquintTime > ValidateSquintTime)
 	{
@@ -221,30 +232,23 @@ void AWebcamReader::ValidateFunction_Implementation()
 	}
 	else
 	{
-		SquintRacingTime = !IsLeftEyeOpen && !IsRightEyeOpen ? SquintRacingTime + TimeRateValidate : SquintRacingTime - TimeRateValidate;
+		SquintRacingTime = !IsLeftEyeOpen && !IsRightEyeOpen ? SquintRacingTime + DeltaTime : SquintRacingTime - DeltaTime;
 	}
-	CurrentSquintTime += TimeRateValidate;
+	CurrentSquintTime += DeltaTime;
 
-	float CurrentBar = 0.95f;
-	bool CurrentEyebrowsState = UFLD_BPL::IsEyebrowsRaised(CurrentBar, 0);
-	if(IsMouseFieldSelected && !EyebrowsLastState && CurrentEyebrowsState)
+	if (CurrentRaisedEyebrowsTime > ValidateRaisedEyebrowsTime)
 	{
-		bIsClickMode = !bIsClickMode;
-		OnClickModeChange.Broadcast(bIsClickMode);
+		CurrentRaisedEyebrowsTime = 0.f;
+		IsRaisedEyebrows = RaisedEyebrowsRacingTime > 0;
+		RaisedEyebrowsRacingTime = 0.f;
 	}
-	EyebrowsLastState = CurrentEyebrowsState;
-
-	//TArray<FVector2D> p;
-	//UFLD_BPL::GetFacialLandmarks(0, p);
-	//float BAR = FVector2D::Distance(p[27], p[22]) + FVector2D::Distance(p[27], p[23]) + FVector2D::Distance(p[27], p[24]) + FVector2D::Distance(p[27], p[25]) + FVector2D::Distance(p[27], p[26]) +
-	//	FVector2D::Distance(p[16], p[22]) + FVector2D::Distance(p[16], p[23]) + FVector2D::Distance(p[16], p[24]) + FVector2D::Distance(p[16], p[25]) + FVector2D::Distance(p[16], p[26]);
-	//BAR /= 4.f* FMath::Max(FVector2D::Distance(p[27], p[16]), FVector2D::Distance(p[27], p[0]));
-	//float BAR = FVector2D::Distance(p[8], p[22]) + FVector2D::Distance(p[8], p[23]) + FVector2D::Distance(p[8], p[24]) + FVector2D::Distance(p[8], p[25]) + FVector2D::Distance(p[8], p[26]);
-	//BAR /= 4.f * (FVector2D::Distance(p[8], p[27]));
-
-	//float BAR_out;
-	//UFLD_BPL::IsEyebrowsRaised(BAR_out);
-	//UE_LOG(LogTemp, Warning, TEXT("%f"), BAR_out);
+	else
+	{
+		float CurrentBar = 0.95f;
+		RaisedEyebrowsRacingTime = UFLD_BPL::IsEyebrowsRaised(CurrentBar, 0, BAR) ? RaisedEyebrowsRacingTime + DeltaTime : RaisedEyebrowsRacingTime - DeltaTime;
+		UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentBar);
+	}
+	CurrentRaisedEyebrowsTime += DeltaTime;
 }
 
 bool AWebcamReader::IsScrollModeEnabled() const

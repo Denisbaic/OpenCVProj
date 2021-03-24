@@ -88,7 +88,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float TimeRateValidate;
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
-		void ValidateFunction();
+		void ValidateFunction(float DeltaTime);
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate) 
 		float ValidateMouthCloseTime;
@@ -118,12 +118,21 @@ public:
 		bool IsSquint = false;
 
 	SET_VALIDATE_PROPERTIES(Squint)
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+		float ValidateRaisedEyebrowsTime;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
+		bool IsRaisedEyebrows = false;
+
+	SET_VALIDATE_PROPERTIES(RaisedEyebrows)
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float MAR = 0.6f;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float EAR = 0.2f;
-
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
+	float BAR = 0.8f;
+	
 	UPROPERTY(BlueprintAssignable)
 	FOnSquint OnSquint;
 	UPROPERTY(BlueprintAssignable)
@@ -146,8 +155,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsInCursorMode;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Render)
+	float RenderTimeInterval;
 protected:
-	
+	FTimerHandle RenderTimer_TimerHandler;
 	FTimerHandle ValidateTimer_TimerHandler;
 	
 	// Use this function to update the texture rects you want to change:

@@ -134,9 +134,9 @@ void AWebcamReader::DoProcessing_Implementation()
 			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
 			UVirtualCursorFunctionLibrary::WheelInput(MouseInput.Y, GetActorTickInterval());
 		}
-		else if(bIsInCursorMode)
+		else if(bIsClickMode)
 		{
-			UVirtualCursorFunctionLibrary::MoveMouse(MouseInput, GetActorTickInterval());
+			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
 		}
 		else
 		{
@@ -246,7 +246,7 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	{
 		float CurrentBar = 0.95f;
 		RaisedEyebrowsRacingTime = UFLD_BPL::IsEyebrowsRaised(CurrentBar, 0, BAR) ? RaisedEyebrowsRacingTime + DeltaTime : RaisedEyebrowsRacingTime - DeltaTime;
-		UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentBar);
+		//UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentBar);
 	}
 	CurrentRaisedEyebrowsTime += DeltaTime;
 }

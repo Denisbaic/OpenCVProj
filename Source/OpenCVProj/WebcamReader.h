@@ -79,7 +79,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
 		bool bNeedFlipHorizontalAxis = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MouseFieldConfig)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = MouseFieldConfig)
 		bool bIsClickMode = false;
 	
 	UFUNCTION(BlueprintImplementableEvent)
@@ -131,7 +131,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float EAR = 0.2f;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
-	float BAR = 0.8f;
+	float BAR = 1.57f;
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnSquint OnSquint;

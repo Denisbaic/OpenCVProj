@@ -7,13 +7,14 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeClose);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeOpen);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeClose);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeOpen);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSquint);
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeClose);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeOpen);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeClose);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeOpen);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSquint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickModeChange,bool,IsEnable);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
 
 
 #define SET_VALIDATE_PROPERTIES(PropertyName)				    \
@@ -132,7 +133,7 @@ public:
 	float EAR = 0.2f;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float BAR = 1.57f;
-	
+	/*
 	UPROPERTY(BlueprintAssignable)
 	FOnSquint OnSquint;
 	UPROPERTY(BlueprintAssignable)
@@ -143,13 +144,12 @@ public:
 	FOnLeftEyeOpen OnLeftEyeOpen;
 	UPROPERTY(BlueprintAssignable)
 	FOnRightEyeOpen OnRightEyeOpen;
+	*/
 
-	UPROPERTY(BlueprintAssignable)
-	FOnGetInput OnGetInput;
-		
+
 	UPROPERTY(BlueprintAssignable)
 	FOnClickModeChange OnClickModeChange;
-
+	
 	UFUNCTION(BlueprintPure, Category = Validate)
 	bool IsScrollModeEnabled() const;
 

@@ -5,17 +5,17 @@
 #include "CamMouseCursorSettings.h"
 #include "GameAnalogCursor.h"
 
-void UVirtualCursorFunctionLibrary::EnableVirtualCursor(class APlayerController* PC)
+void UCursor_BPL::EnableVirtualCursor(class APlayerController* PC)
 {
 	FGameAnalogCursor::EnableAnalogCursor(PC, TSharedPtr<SWidget>());
 }
 
-void UVirtualCursorFunctionLibrary::DisableVirtualCursor(class APlayerController* PC)
+void UCursor_BPL::DisableVirtualCursor(class APlayerController* PC)
 {
 	FGameAnalogCursor::DisableAnalogCursor(PC);
 }
 
-bool UVirtualCursorFunctionLibrary::IsCursorOverInteractableWidget()
+bool UCursor_BPL::IsCursorOverInteractableWidget()
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 	if (Analog.IsValid())
@@ -25,7 +25,7 @@ bool UVirtualCursorFunctionLibrary::IsCursorOverInteractableWidget()
 	return false;
 }
 
-void UVirtualCursorFunctionLibrary::LeftClick()
+void UCursor_BPL::LeftClick()
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 	if (Analog.IsValid())
@@ -42,7 +42,7 @@ void UVirtualCursorFunctionLibrary::LeftClick()
 	}
 }
 
-void UVirtualCursorFunctionLibrary::RightClick()
+void UCursor_BPL::RightClick()
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 	if (Analog.IsValid())
@@ -58,7 +58,7 @@ void UVirtualCursorFunctionLibrary::RightClick()
 	}
 }
 
-void UVirtualCursorFunctionLibrary::WheelInput(float Input,float DeltaTime)
+void UCursor_BPL::WheelInput(float Input,float DeltaTime)
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 	if (Analog.IsValid())
@@ -73,7 +73,7 @@ void UVirtualCursorFunctionLibrary::WheelInput(float Input,float DeltaTime)
 	}
 }
 
-void UVirtualCursorFunctionLibrary::MoveMouse(FVector2D Input, float DeltaTime)
+void UCursor_BPL::MoveMouse(FVector2D Input, float DeltaTime)
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 	if (Analog.IsValid())

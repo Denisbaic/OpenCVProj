@@ -8,7 +8,7 @@
 
 
 UCLASS()
-class FLDPLUGIN_API UVirtualCursorFunctionLibrary : public UBlueprintFunctionLibrary
+class FLDPLUGIN_API UCursor_BPL : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

@@ -26,13 +26,10 @@ AWebcamReader::AWebcamReader()
 void AWebcamReader::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
-	
+		
 	int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data","deploy.prototxt", "res10_300x300_ssd_iter_140000_fp16.caffemodel", "lbfmodel.yaml",
 							200, 100);
-	//int32 i = UFLD_BPL::InitOpenCV(CameraID, "Data", "shape_predictor_68_face_landmarks.dat", "lbfmodel.yaml",
-		//						200, 100);
+
 	UE_LOG(LogTemp, Warning, TEXT("%d"), i);
 	// Open the stream
 	
@@ -131,18 +128,22 @@ void AWebcamReader::DoProcessing_Implementation()
 
 		if(IsScrollModeEnabled())
 		{
-			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
-			UVirtualCursorFunctionLibrary::WheelInput(MouseInput.Y, GetActorTickInterval());
+			UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
+			UCursor_BPL::WheelInput(MouseInput.Y, GetActorTickInterval());
 		}
 		else if(bIsClickMode)
 		{
-			UVirtualCursorFunctionLibrary::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
+			UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
 		}
 		else
 		{
-			UVirtualCursorFunctionLibrary::MoveMouse(MouseInput, GetActorTickInterval());
-			OnGetInput.Broadcast(MouseInput);
+			UCursor_BPL::MoveMouse(MouseInput, GetActorTickInterval());
+			//OnGetInput.Broadcast(MouseInput);
 		}
+	}
+	else
+	{
+		UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
 	}
 	
 }

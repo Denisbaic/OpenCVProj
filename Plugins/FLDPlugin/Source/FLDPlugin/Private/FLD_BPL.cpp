@@ -1,25 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "FLD_BPL.h"
-#include "FLDPlugin.h"
 
 #define FLD_NOSE_INDEX 30
-
-typedef bool(*_getInvertedBool)(bool boolState); // Declare a method to store the DLL method getInvertedBool.
-typedef int(*_getIntPlusPlus)(int lastInt); // Declare a method to store the DLL method getIntPlusPlus.
-typedef float(*_getCircleArea)(float radius); // Declare a method to store the DLL method getCircleArea.
-typedef char* (*_getCharArray)(char* parameterText); // Declare a method to store the DLL method getCharArray.
-typedef float* (*_getVector4)(float x, float y, float z, float w); // Declare a method to store the DLL method getVector4.
-
-typedef void (*_invertBool) ();
-typedef bool (*_getBool) ();
-
-typedef int (*_init_opencv) (int cam_index, char* FaceDetectorCascadeFilePath, char* FaceMarkModelFilePath);
-typedef void (*_show_frame) ();
-typedef void (*_stop_opencv) ();
-
-typedef int (*_init_dlib) (int cam_index, char* predictorFilePath);
-
 
 typedef int(*_init_open_cv)(int cam_index,
     char* face_detector_config,
@@ -54,23 +37,6 @@ typedef void (*_get_facial_landmarks)(int face_index, float*& arr_output, int& s
 typedef void (*_void_three_float)(float R, float G, float B);
 typedef void (*_void_three_float_ref)(float& R, float& G, float& B);
 
-_getInvertedBool m_getInvertedBoolFromDll = nullptr;
-_getIntPlusPlus m_getIntPlusPlusFromDll= nullptr;
-_getCircleArea m_getCircleAreaFromDll= nullptr;
-_getCharArray m_getCharArrayFromDll= nullptr;
-_getVector4 m_getVector4FromDll= nullptr;
-
-_invertBool m_invertBoolFromDll= nullptr;
-_getBool m_getBoolFromDll= nullptr;
-
-_init_opencv m_init_opencv= nullptr;
-_show_frame m_show_frame= nullptr;
-_stop_opencv m_stop_opencv= nullptr;
-
-_init_dlib m_init_dlib= nullptr;
-_void_func_ptr m_show_frame_dlib= nullptr;
-
-
 _init_open_cv m_init_open_cv= nullptr;
 _is_eye_open m_is_eye_open= nullptr;
 _is_mouth_open m_is_mouth_open= nullptr;
@@ -102,84 +68,83 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
     if (FPaths::FileExists(filePath))
     {
         v_dllHandle = FPlatformProcess::GetDllHandle(*filePath); // Retrieve the DLL.
-        if (v_dllHandle != NULL)
+        if (v_dllHandle != nullptr)
         {
             FString procName = "InitOpenCV";
             m_init_open_cv = (_init_open_cv)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_init_open_cv == NULL;
+            SomeWentWrong = SomeWentWrong || m_init_open_cv == nullptr;
 
             procName = "IsEyeOpen";
             m_is_eye_open = (_is_eye_open)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_is_eye_open == NULL;
+            SomeWentWrong = SomeWentWrong || m_is_eye_open == nullptr;
 
             procName = "IsMouthOpen";
             m_is_mouth_open = (_is_mouth_open)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_is_mouth_open == NULL;
-            
-        	
+            SomeWentWrong = SomeWentWrong || m_is_mouth_open == nullptr;
+                    	
             procName = "IsEyebrowsRaised";
             m_is_eyebrowns_raised = (_is_eyebrowns_raised)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_is_eyebrowns_raised == NULL;
+            SomeWentWrong = SomeWentWrong || m_is_eyebrowns_raised == nullptr;
         	
             procName = "CalculateFacialLandmarks";
             m_calculate_facial_landmarks = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_calculate_facial_landmarks == NULL;
+            SomeWentWrong = SomeWentWrong || m_calculate_facial_landmarks == nullptr;
 
             procName = "GetFrame";
             m_get_frame = (_get_frame)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_frame == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_frame == nullptr;
 
             procName = "StopOpenCV";
             m_stop_open_cv = (_void_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_stop_open_cv == NULL;
+            SomeWentWrong = SomeWentWrong || m_stop_open_cv == nullptr;
 
             procName = "SetIsNeedToShowBBox";
             m_set_is_need_to_show_bbox = (_void_bool_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_set_is_need_to_show_bbox == NULL;
+            SomeWentWrong = SomeWentWrong || m_set_is_need_to_show_bbox == nullptr;
 
             procName = "GetIsNeedToShowBBox";
             m_get_is_need_to_show_bbox = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_is_need_to_show_bbox == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_is_need_to_show_bbox == nullptr;
 
             procName = "SetIsSelectedNosePositionForMouseControl";
             m_set_is_selected_nose_position_for_mouse_control = (_void_bool_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_set_is_selected_nose_position_for_mouse_control == NULL;
+            SomeWentWrong = SomeWentWrong || m_set_is_selected_nose_position_for_mouse_control == nullptr;
 
             procName = "GetIsSelectedNosePositionForMouseControl";
             m_get_is_selected_nose_position_for_mouse_control = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_is_selected_nose_position_for_mouse_control == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_is_selected_nose_position_for_mouse_control == nullptr;
 
             procName = "SetMouseField";
             m_set_mouse_field = (_set_mouse_field)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_set_mouse_field == NULL;
+            SomeWentWrong = SomeWentWrong || m_set_mouse_field == nullptr;
 
             procName = "GetMouseField";
             m_get_mouse_field = (_get_mouse_field)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_mouse_field == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_mouse_field == nullptr;
         	
             procName = "IsCamOpened";
             m_is_camera_opened = (_bool_func_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_is_camera_opened == NULL;
+            SomeWentWrong = SomeWentWrong || m_is_camera_opened == nullptr;
 
             procName = "GetFrameSize";
             m_get_frame_size = (_void_two_int_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_frame_size == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_frame_size == nullptr;
 
             procName = "ResizeFrame";
             m_resize_frame = (_void_two_int)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_resize_frame == NULL;
+            SomeWentWrong = SomeWentWrong || m_resize_frame == nullptr;
             
             procName = "GetFacialLandmarks";
             m_get_facial_landmarks = (_get_facial_landmarks)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == nullptr;
 
             procName = "SetUIColor";
             m_set_ui_color = (_void_three_float)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == nullptr;
 
             procName = "GetUIColor";
             m_get_ui_color = (_void_three_float_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == NULL;
+            SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == nullptr;
         	
             return SomeWentWrong;
         }
@@ -190,7 +155,7 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
 int32 UFLD_BPL::InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorConfigFilePath, FString FaceDetectorWeightsFilePath, FString FaceMarkModelFilePath,
     int32 MouseWheelFieldWidth, int32 MouseWheelFieldHeight)
 {
-    if (m_init_open_cv != NULL)
+    if (m_init_open_cv != nullptr)
     {
         const FString filePathConfig = *FPaths::ProjectContentDir() + Folder + "/" + FaceDetectorConfigFilePath;
         const FString filePathWeights = *FPaths::ProjectContentDir() + Folder + "/" + FaceDetectorWeightsFilePath;
@@ -203,28 +168,28 @@ int32 UFLD_BPL::InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorC
 
 bool UFLD_BPL::IsEyeOpen(float& CurrentEAR, int32 FaceIndex, bool CheckLeftEye, float EAR)
 {
-    if (m_is_eye_open != NULL)
+    if (m_is_eye_open != nullptr)
         return m_is_eye_open(FaceIndex, CheckLeftEye, EAR, CurrentEAR);
     return true;
 }
 
 bool UFLD_BPL::IsMouthOpen(int32 FaceIndex, float MAR)
 {
-    if (m_is_mouth_open != NULL)
+    if (m_is_mouth_open != nullptr)
         return m_is_mouth_open(FaceIndex, MAR);
     return false;
 }
 
 bool UFLD_BPL::IsEyebrowsRaised(float& CurrentBAR, int32 FaceIndex, float BAR)
 {
-    if (m_is_eyebrowns_raised != NULL)
+    if (m_is_eyebrowns_raised != nullptr)
         return m_is_eyebrowns_raised(FaceIndex, BAR,CurrentBAR);
     return false;    
 }
 
 bool UFLD_BPL::CalculateFacialLandmarks()
 {
-    if (m_calculate_facial_landmarks != NULL)
+    if (m_calculate_facial_landmarks != nullptr)
         return m_calculate_facial_landmarks();
     return false;
 }
@@ -237,7 +202,7 @@ bool UFLD_BPL::GetFrame(TArray<FColor>& Frame)
     if (Frame.Num() != h * w)
         Frame.Init(FColor(0, 0, 0, 255), h * w);
 
-    if (m_get_frame != NULL)
+    if (m_get_frame != nullptr)
     {
         unsigned char* FramePtr = nullptr;
         m_get_frame(FramePtr);
@@ -261,7 +226,7 @@ bool UFLD_BPL::GetFrame(TArray<FColor>& Frame)
 
 bool UFLD_BPL::_StopOpenCV()
 {
-    if (m_stop_open_cv != NULL)
+    if (m_stop_open_cv != nullptr)
     {
         m_stop_open_cv();
         return true;
@@ -271,7 +236,7 @@ bool UFLD_BPL::_StopOpenCV()
 
 bool UFLD_BPL::SetIsNeedToShowBBox(bool NewValue)
 {
-    if (m_set_is_need_to_show_bbox != NULL)
+    if (m_set_is_need_to_show_bbox != nullptr)
     {
         m_set_is_need_to_show_bbox(NewValue);
         return true;
@@ -281,7 +246,7 @@ bool UFLD_BPL::SetIsNeedToShowBBox(bool NewValue)
 
 bool UFLD_BPL::GetIsNeedToShowBBox()
 {
-    if (m_get_is_need_to_show_bbox != NULL)
+    if (m_get_is_need_to_show_bbox != nullptr)
     {
         return m_get_is_need_to_show_bbox();
     }
@@ -290,7 +255,7 @@ bool UFLD_BPL::GetIsNeedToShowBBox()
 
 bool UFLD_BPL::SetIsSelectedNosePositionForMouseControl(bool NewValue)
 {
-    if (m_set_is_selected_nose_position_for_mouse_control != NULL)
+    if (m_set_is_selected_nose_position_for_mouse_control != nullptr)
     {
         m_set_is_selected_nose_position_for_mouse_control(NewValue);
         return true;
@@ -300,7 +265,7 @@ bool UFLD_BPL::SetIsSelectedNosePositionForMouseControl(bool NewValue)
 
 bool UFLD_BPL::GetIsSelectedNosePositionForMouseControl()
 {
-    if (m_get_is_selected_nose_position_for_mouse_control != NULL)
+    if (m_get_is_selected_nose_position_for_mouse_control != nullptr)
     {
         return m_get_is_selected_nose_position_for_mouse_control();
     }
@@ -309,7 +274,7 @@ bool UFLD_BPL::GetIsSelectedNosePositionForMouseControl()
 
 bool UFLD_BPL::SetMouseField(int32 x, int32 y, int32 width, int32 height)
 {
-    if (m_set_mouse_field != NULL)
+    if (m_set_mouse_field != nullptr)
     {
         m_set_mouse_field(x, y, width, height);
         return true;
@@ -319,7 +284,7 @@ bool UFLD_BPL::SetMouseField(int32 x, int32 y, int32 width, int32 height)
 
 bool UFLD_BPL::GetMouseField(int32& x, int32& y, int32& width, int32& height)
 {
-    if (m_get_mouse_field != NULL)
+    if (m_get_mouse_field != nullptr)
     {
         m_get_mouse_field(x, y, width, height);
         return true;
@@ -329,7 +294,7 @@ bool UFLD_BPL::GetMouseField(int32& x, int32& y, int32& width, int32& height)
 
 bool UFLD_BPL::IsCamOpened()
 {
-    if (m_is_camera_opened != NULL)
+    if (m_is_camera_opened != nullptr)
     {
         return m_is_camera_opened();
     }
@@ -338,7 +303,7 @@ bool UFLD_BPL::IsCamOpened()
 
 bool UFLD_BPL::GetFrameSize(int32& width, int32& height)
 {
-    if (m_get_frame_size != NULL)
+    if (m_get_frame_size != nullptr)
     {
         m_get_frame_size(width, height);
         return true;
@@ -348,7 +313,7 @@ bool UFLD_BPL::GetFrameSize(int32& width, int32& height)
 
 bool UFLD_BPL::ResizeFrame(int32 width, int32 height)
 {
-    if (m_resize_frame != NULL)
+    if (m_resize_frame != nullptr)
     {
         m_resize_frame(width, height);
         return true;
@@ -383,7 +348,7 @@ bool UFLD_BPL::GetFacialLandmarks(int32 face_index, TArray<FVector2D>& FacialLan
 
 bool UFLD_BPL::SetUIColor(FColor UIColor)
 {
-    if (m_set_ui_color != NULL)
+    if (m_set_ui_color != nullptr)
     {
         m_set_ui_color(UIColor.R, UIColor.G, UIColor.B);
         return true;
@@ -393,7 +358,7 @@ bool UFLD_BPL::SetUIColor(FColor UIColor)
 
 bool UFLD_BPL::GetUIColor(float& R, float& G, float& B)
 {
-    if (m_get_ui_color != NULL)
+    if (m_get_ui_color != nullptr)
     {
         m_get_ui_color(R, G, B);
         return true;
@@ -437,17 +402,31 @@ bool UFLD_BPL::GetMouseDirection(int32 face_index, FVector2D& mouse_dir_out, boo
 // If you love something  set it free.
 void UFLD_BPL::freeDLL()
 {
-    if (v_dllHandle != NULL)
+    if (v_dllHandle != nullptr)
     {
-        m_getInvertedBoolFromDll = NULL;
-        m_getIntPlusPlusFromDll = NULL;
-        m_getCircleAreaFromDll = NULL;
-        m_getCharArrayFromDll = NULL;
-        m_getVector4FromDll = NULL;
+        _StopOpenCV();
+    	
+        m_init_open_cv = nullptr;
+        m_is_eye_open = nullptr;
+        m_is_mouth_open = nullptr;
+        m_is_eyebrowns_raised = nullptr;
+        m_calculate_facial_landmarks = nullptr;
+        m_get_frame = nullptr;
+        m_stop_open_cv = nullptr;
+        m_set_is_need_to_show_bbox = nullptr;
+        m_get_is_need_to_show_bbox = nullptr;
+        m_set_is_selected_nose_position_for_mouse_control = nullptr;
+        m_get_is_selected_nose_position_for_mouse_control = nullptr;    	
+        m_set_mouse_field = nullptr;
+        m_get_mouse_field = nullptr;
+        m_is_camera_opened = nullptr;
+        m_resize_frame = nullptr;
+        m_get_facial_landmarks = nullptr;
+        m_set_ui_color = nullptr;
+        m_get_ui_color = nullptr;   	
 
         FPlatformProcess::FreeDllHandle(v_dllHandle);
-        v_dllHandle = NULL;
+        v_dllHandle = nullptr;
     }
 }
 #pragma endregion Unload DLL
-

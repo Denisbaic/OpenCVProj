@@ -38,7 +38,6 @@ void UCursor_BPL::LeftClick()
 		FKey MouseLMB = EKeys::LeftMouseButton;
 		Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseLMB, EInputEvent::IE_Pressed);
 		Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseLMB, EInputEvent::IE_Released);
-
 	}
 }
 

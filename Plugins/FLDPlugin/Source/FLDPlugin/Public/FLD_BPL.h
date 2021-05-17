@@ -17,10 +17,14 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static int32 InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorConfigFilePath, FString FaceDetectorWeightsFilePath, FString FaceMarkModelFilePath, int32 MouseWheelFieldWidth = 200, int32 MouseWheelFieldHeight = 100);
-    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+    //TEST
+    //UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        //static bool LoadDataSet(FString Folder);
+	
+	UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool IsEyeOpen(float& CurrentEAR, int32 FaceIndex = 0, bool CheckLeftEye = true, float EAR = 0.2f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
-        static bool IsMouthOpen(int32 FaceIndex = 0, float MAR = 0.6f);
+        static bool IsMouthOpen(float& CurrentMAR, int32 FaceIndex = 0, float MAR = 0.6f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static bool IsEyebrowsRaised(float& CurrentBAR, int32 FaceIndex = 0, float BAR = 1.57f);
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
@@ -57,7 +61,12 @@ public:
 	
     UFUNCTION(BlueprintCallable, Category = "Extended Functions")
         static bool GetMouseDirection(int32 face_index, FVector2D& mouse_dir_out, bool IsNeedToRecalculate = false);
-	
+    /*
+    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        static bool SetTestMode(bool IsTestMode);
+    UFUNCTION(BlueprintCallable, Category = "My DLL Library")
+        static bool NextFrame(bool GetOppositeFrame);
+	*/
     UFUNCTION(BlueprintCallable, Category = "My DLL Library")
         static void freeDLL();
 };

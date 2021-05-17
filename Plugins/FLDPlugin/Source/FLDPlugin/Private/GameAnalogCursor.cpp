@@ -187,6 +187,8 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 
 void FGameAnalogCursor::TriggerMouseLMB()
 {
+	if (!GEngine)
+		return;
 	FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 	FKey MouseLMB = EKeys::LeftMouseButton;
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseLMB, EInputEvent::IE_Pressed);
@@ -216,6 +218,8 @@ void FGameAnalogCursor::TriggerMouseLMB()
 
 void FGameAnalogCursor::TriggerMouseRMB()
 {
+	if (!GEngine)
+		return;
 	FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 	FKey MouseRMB = EKeys::RightMouseButton;
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseRMB, EInputEvent::IE_Pressed);
@@ -245,6 +249,8 @@ void FGameAnalogCursor::TriggerMouseRMB()
 
 void FGameAnalogCursor::TriggerWheel(float InDeltaWheel,float DeltaTime)
 {
+	if(!GEngine)
+		return;
 	FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 	FKey MouseAxis = EKeys::MouseWheelAxis;
 

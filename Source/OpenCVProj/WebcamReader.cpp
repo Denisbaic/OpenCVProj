@@ -31,6 +31,8 @@ void AWebcamReader::BeginPlay()
 							200, 100);
 
 	UE_LOG(LogTemp, Warning, TEXT("%d"), i);
+	//UFLD_BPL::LoadDataSet("Data");
+	
 	// Open the stream
 	
 	if (UFLD_BPL::IsCamOpened())
@@ -58,6 +60,18 @@ void AWebcamReader::BeginPlay()
 	
 }
 
+void AWebcamReader::ChangeFrameSize()
+{
+	UFLD_BPL::GetFrameSize(VideoSize.X, VideoSize.Y);
+	//size = cv::Size(ResizeDeminsions.X, ResizeDeminsions.Y);
+	VideoTexture = UTexture2D::CreateTransient(VideoSize.X, VideoSize.Y);
+	VideoTexture->UpdateResource();
+	VideoUpdateTextureRegion = new FUpdateTextureRegion2D(0, 0, 0, 0, VideoSize.X, VideoSize.Y);
+
+	// Initialize data array
+	Data.Init(FColor(0, 0, 0, 255), VideoSize.X * VideoSize.Y);
+}
+
 // Called every frame
 void AWebcamReader::Tick(float DeltaTime)
 {
@@ -73,7 +87,6 @@ void AWebcamReader::Tick(float DeltaTime)
 
 void AWebcamReader::DoProcessing_Implementation()
 {
-	
 	if (ShouldResize && UFLD_BPL::IsCamOpened())
 	{
 		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
@@ -100,7 +113,7 @@ void AWebcamReader::DoProcessing_Implementation()
 		UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
 		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
 	}
-		
+	
 	LastMouthState = !IsMouthClose;
 
 	static bool EyebrowsLastState = false;
@@ -138,7 +151,7 @@ void AWebcamReader::DoProcessing_Implementation()
 		else
 		{
 			UCursor_BPL::MoveMouse(MouseInput, GetActorTickInterval());
-			//OnGetInput.Broadcast(MouseInput);
+			OnGetInput.Broadcast(MouseInput);
 		}
 	}
 	else
@@ -166,7 +179,9 @@ if (Current##EyeSide##EyeTime > Validate##EyeSide##EyeOpenTime)																	
 {																																		\
 	Current##EyeSide##EyeTime = 0.f;																									\
 	Is##EyeSide##EyeOpen = EyeSide##EyeRacingTime > 0;																					\
-	EyeSide##EyeRacingTime = 0.f;																										\
+	float current_ear;																													\
+	bool const bCurrentEyeState = UFLD_BPL::IsEyeOpen(current_ear, 0, IsLeftSide, EAR);													\
+	EyeSide##EyeRacingTime = bCurrentEyeState ? DeltaTime : - DeltaTime;																\
 }																																		\
 else																																	\
 {																																		\
@@ -215,12 +230,15 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	{
 		CurrentMouthTime = 0.f;
 		IsMouthClose = MouthRacingTime < 0;
-		MouthRacingTime = 0.f;
+		float CurrentMAR = 0.95f;
+		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(CurrentMAR,0, MAR);
+		
+		MouthRacingTime = bCurrentMouthState ? DeltaTime : - DeltaTime;
 	}
 	else
 	{
-		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(0, MAR);
-		
+		float CurrentMAR = 0.95f;
+		bool const bCurrentMouthState = UFLD_BPL::IsMouthOpen(CurrentMAR,0, MAR);
 		MouthRacingTime = bCurrentMouthState ? MouthRacingTime + DeltaTime : MouthRacingTime - DeltaTime;
 	}
 	CurrentMouthTime += DeltaTime;
@@ -229,7 +247,7 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	{
 		CurrentSquintTime = 0.f;
 		IsSquint = SquintRacingTime > 0;
-		SquintRacingTime = 0.f;
+		SquintRacingTime = !IsLeftEyeOpen && !IsRightEyeOpen ? DeltaTime : -DeltaTime;
 	}
 	else
 	{
@@ -241,7 +259,8 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	{
 		CurrentRaisedEyebrowsTime = 0.f;
 		IsRaisedEyebrows = RaisedEyebrowsRacingTime > 0;
-		RaisedEyebrowsRacingTime = 0.f;
+		float CurrentBar = 0.95f;
+		RaisedEyebrowsRacingTime = UFLD_BPL::IsEyebrowsRaised(CurrentBar, 0, BAR) ? DeltaTime : - DeltaTime;
 	}
 	else
 	{

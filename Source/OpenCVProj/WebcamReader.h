@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,19 +5,12 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
-
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeClose);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftEyeOpen);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeClose);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRightEyeOpen);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSquint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickModeChange,bool,IsEnable);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
 
 #define SET_VALIDATE_PROPERTIES(PropertyName)				    \
 	float PropertyName##RacingTime = 0.f;						\
-	float Current##PropertyName##Time = 0.f;									
+	float Current##PropertyName##Time = 0.f;					
 
 UCLASS()
 class OPENCVPROJ_API AWebcamReader : public AActor
@@ -33,6 +24,9 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	void ChangeFrameSize();
+	
 	// Called every frame
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -48,7 +42,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = SizeConfig)
 		FIntPoint FinalVideoSize;
 	
-
 	// Blueprint Event called every time the video frame is updated
 	UFUNCTION(BlueprintImplementableEvent, Category = Webcam)
 		void OnNextVideoFrame();
@@ -149,6 +142,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnClickModeChange OnClickModeChange;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGetInput OnGetInput;
 	
 	UFUNCTION(BlueprintPure, Category = Validate)
 	bool IsScrollModeEnabled() const;

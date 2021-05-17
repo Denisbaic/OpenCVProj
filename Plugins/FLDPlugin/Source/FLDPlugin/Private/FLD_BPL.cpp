@@ -11,12 +11,14 @@ typedef int(*_init_open_cv)(int cam_index,
     int mouse_wheel_field_width,
     int mouse_wheel_field_height);
 
+//typedef void(*_void_char_ptr)(char* folder);
+
 typedef bool(*_is_eye_open)(int face_index,
     bool check_left_eye,
     float EAR,float& CurrentEAR);
 
 typedef bool(*_is_mouth_open)(int face_index,
-    float MAR);
+    float MAR, float& CurrentMAR);
 
 typedef bool(*_is_eyebrowns_raised)(int face_index, float BAR, float& current_bar);
 
@@ -38,6 +40,7 @@ typedef void (*_void_three_float)(float R, float G, float B);
 typedef void (*_void_three_float_ref)(float& R, float& G, float& B);
 
 _init_open_cv m_init_open_cv= nullptr;
+//_void_char_ptr m_load_data_set = nullptr;
 _is_eye_open m_is_eye_open= nullptr;
 _is_mouth_open m_is_mouth_open= nullptr;
 _is_eyebrowns_raised m_is_eyebrowns_raised = nullptr;
@@ -56,7 +59,8 @@ _void_two_int m_resize_frame= nullptr;
 _get_facial_landmarks m_get_facial_landmarks= nullptr;
 _void_three_float m_set_ui_color = nullptr;
 _void_three_float_ref m_get_ui_color = nullptr;
-
+//_void_bool_ptr m_set_test_mode = nullptr;
+//_void_bool_ptr m_next_frame = nullptr;
 void* v_dllHandle= nullptr;
 
 bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
@@ -74,6 +78,10 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             m_init_open_cv = (_init_open_cv)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_init_open_cv == nullptr;
 
+            //procName = "LoadDataSet";
+            //m_load_data_set = (_void_char_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            //SomeWentWrong = SomeWentWrong || m_load_data_set == nullptr;
+        	
             procName = "IsEyeOpen";
             m_is_eye_open = (_is_eye_open)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_is_eye_open == nullptr;
@@ -145,7 +153,15 @@ bool UFLD_BPL::importDllAndDllFunctions(FString folder, FString name)
             procName = "GetUIColor";
             m_get_ui_color = (_void_three_float_ref)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
             SomeWentWrong = SomeWentWrong || m_get_facial_landmarks == nullptr;
-        	
+
+            /*procName = "SetTestMode";
+            m_set_test_mode = (_void_bool_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_set_test_mode == nullptr;
+
+            procName = "NextFrame";
+            m_next_frame = (_void_bool_ptr)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+            SomeWentWrong = SomeWentWrong || m_next_frame == nullptr;*/
+            
             return SomeWentWrong;
         }
     }
@@ -165,18 +181,42 @@ int32 UFLD_BPL::InitOpenCV(int32 CamIndex, FString Folder, FString FaceDetectorC
 
     return -1;
 }
+/*
+bool UFLD_BPL::LoadDataSet(FString Folder)
+{
+    if (m_load_data_set != nullptr)
+    {
+        const FString FolderPath = *FPaths::ProjectContentDir() + Folder + "/";
+        m_load_data_set(TCHAR_TO_ANSI(*FolderPath));
 
+        return true;
+    }
+    return true;
+}
+*/
 bool UFLD_BPL::IsEyeOpen(float& CurrentEAR, int32 FaceIndex, bool CheckLeftEye, float EAR)
 {
     if (m_is_eye_open != nullptr)
-        return m_is_eye_open(FaceIndex, CheckLeftEye, EAR, CurrentEAR);
+    {
+        auto const returned_var = m_is_eye_open(FaceIndex, CheckLeftEye, EAR, CurrentEAR);
+    	//if(!CheckLeftEye)
+			//UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentEAR);
+        return returned_var;
+    }
+    
+	
     return true;
 }
 
-bool UFLD_BPL::IsMouthOpen(int32 FaceIndex, float MAR)
+bool UFLD_BPL::IsMouthOpen(float& CurrentMAR, int32 FaceIndex, float MAR)
 {
     if (m_is_mouth_open != nullptr)
-        return m_is_mouth_open(FaceIndex, MAR);
+    {
+        auto const returned_var = m_is_mouth_open(FaceIndex, MAR, CurrentMAR);
+        UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentMAR);
+        return returned_var;
+    }
+        
     return false;
 }
 
@@ -393,7 +433,27 @@ bool UFLD_BPL::GetMouseDirection(int32 face_index, FVector2D& mouse_dir_out, boo
     mouse_dir_out = NosePosition - MouseFieldCenter;
     return true;
 }
+/*
+bool UFLD_BPL::SetTestMode(bool IsTestMode)
+{
+    if (m_set_test_mode != nullptr)
+    {
+        m_set_test_mode(IsTestMode);
+        return true;
+    }
+    return false;
+}
 
+bool UFLD_BPL::NextFrame(bool GetOppositeFrame)
+{
+    if (m_next_frame != nullptr)
+    {
+        m_next_frame(GetOppositeFrame);
+        return true;
+    }
+    return false;
+}
+*/
 #pragma endregion Method Calls
 
 

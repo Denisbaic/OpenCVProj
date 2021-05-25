@@ -169,7 +169,7 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 		//update the new position
 		OldPosition += (Velocity * DeltaTime);
 
-		if (!GEngine)
+		if (!GEngine && GEngine->GameViewport)
 			return;
 		FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 		FKey const MouseX = EKeys::MouseX;

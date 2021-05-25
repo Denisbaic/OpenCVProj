@@ -34,13 +34,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Webcam)
 		int32 CameraID;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = FaceSigns)
+		bool IsNeedToReactOnGestureChanges;
+	
+	
 	// If the webcam images should be resized every frame
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SizeConfig)
-		bool ShouldResize;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SizeConfig)
+		//bool ShouldResize;
 	
 	// The targeted resize width and height (width, height)
-	UPROPERTY(BlueprintReadWrite, Category = SizeConfig)
-		FIntPoint FinalVideoSize;
+	//UPROPERTY(BlueprintReadWrite, Category = SizeConfig)
+		//FIntPoint FinalVideoSize;
 	
 	// Blueprint Event called every time the video frame is updated
 	UFUNCTION(BlueprintImplementableEvent, Category = Webcam)
@@ -155,6 +159,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Render)
 	float RenderTimeInterval;
 protected:
+	float _DeltaTime;
 	FTimerHandle RenderTimer_TimerHandler;
 	FTimerHandle ValidateTimer_TimerHandler;
 	

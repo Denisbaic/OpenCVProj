@@ -169,7 +169,7 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 		//update the new position
 		OldPosition += (Velocity * DeltaTime);
 
-		if (!GEngine && GEngine->GameViewport)
+		if (!GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
 			return;
 		FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 		FKey const MouseX = EKeys::MouseX;
@@ -256,23 +256,14 @@ void FGameAnalogCursor::TriggerWheel(float InDeltaWheel,float DeltaTime)
 	FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 	FKey MouseAxis = EKeys::MouseWheelAxis;
 
-	Client->InputAxis(GEngine->GameViewport->Viewport, 0, MouseAxis, FMath::Clamp(InDeltaWheel, -1.f, 1.f), DeltaTime);
+	InDeltaWheel = FMath::Clamp(InDeltaWheel, -1.f, 1.f);
+	Client->InputAxis(GEngine->GameViewport->Viewport, 0, MouseAxis, InDeltaWheel, DeltaTime);
 	
 	//Get our slate application
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 
-	//create a pointer event
-	FPointerEvent MouseEvent(
-		0,
-		SlateApp.CursorPointerIndex,
-		SlateApp.GetCursorPos(),
-		SlateApp.GetLastCursorPos(),
-		SlateApp.GetPressedMouseButtons(),
-		EKeys::MouseWheelAxis,
-		InDeltaWheel,
-		SlateApp.GetPlatformApplication()->GetModifierKeys()
-	);
-	SlateApp.ProcessMouseWheelOrGestureEvent(MouseEvent, nullptr);
+	
+	SlateApp.OnMouseWheel(InDeltaWheel);
 }
 
 FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale)

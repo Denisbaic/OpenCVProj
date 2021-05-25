@@ -17,8 +17,9 @@ AWebcamReader::AWebcamReader()
 	// Initialize OpenCV and webcam properties
 	CameraID = 0;
 
+	IsNeedToReactOnGestureChanges = true;
 	//VideoSize = FVector2D(0, 0);
-	ShouldResize = false;
+	//ShouldResize = false;
 	//ResizeDeminsions = FVector2D(320, 240);
 }
 
@@ -34,7 +35,7 @@ void AWebcamReader::BeginPlay()
 	//UFLD_BPL::LoadDataSet("Data");
 	
 	// Open the stream
-	
+	_DeltaTime = 0.f;
 	if (UFLD_BPL::IsCamOpened())
 	{
 		// Initialize stream
@@ -76,21 +77,22 @@ void AWebcamReader::ChangeFrameSize()
 void AWebcamReader::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+	_DeltaTime = DeltaTime;
 	//if(UFLD_BPL::CalculateFacialLandmarks())
 	//{
 		//float temp = GetWorld()->GetDeltaSeconds();
 		//ValidateFunction(DeltaTime);
+	if(IsNeedToReactOnGestureChanges)
 		DoProcessing();
 	//}	
 }
 
 void AWebcamReader::DoProcessing_Implementation()
 {
-	if (ShouldResize && UFLD_BPL::IsCamOpened())
+	/*if (ShouldResize && UFLD_BPL::IsCamOpened())
 	{
 		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
-	}
+	}*/
 
 	static bool LastMouthState = false;
 	
@@ -141,22 +143,23 @@ void AWebcamReader::DoProcessing_Implementation()
 
 		if(IsScrollModeEnabled())
 		{
-			UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
-			UCursor_BPL::WheelInput(MouseInput.Y, GetActorTickInterval());
+			
+			UCursor_BPL::MoveMouse({ 0.f,0.f }, _DeltaTime);
+			UCursor_BPL::WheelInput(MouseInput.Y, _DeltaTime);
 		}
 		else if(bIsClickMode)
 		{
-			UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
+			UCursor_BPL::MoveMouse({ 0.f,0.f }, _DeltaTime);
 		}
 		else
 		{
-			UCursor_BPL::MoveMouse(MouseInput, GetActorTickInterval());
+			UCursor_BPL::MoveMouse(MouseInput, _DeltaTime);
 			OnGetInput.Broadcast(MouseInput);
 		}
 	}
 	else
 	{
-		UCursor_BPL::MoveMouse({ 0.f,0.f }, GetActorTickInterval());
+		UCursor_BPL::MoveMouse({ 0.f,0.f }, _DeltaTime);
 	}
 	
 }

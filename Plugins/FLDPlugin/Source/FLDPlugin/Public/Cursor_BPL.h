@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Kismet/BlueprintFunctionLibrary.h"
+
 #include "Cursor_BPL.generated.h"
 
 
+class FGameAnalogCursor;
 UCLASS()
 class FLDPLUGIN_API UCursor_BPL : public UBlueprintFunctionLibrary
 {
@@ -20,6 +23,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game")
 		static void DisableVirtualCursor(class APlayerController* PC);
 
+	static TSharedPtr<FGameAnalogCursor> GetCursorPtr();
+	
 	UFUNCTION(BlueprintPure, Category = "Game")
 		static bool IsCursorOverInteractableWidget();
 
@@ -34,4 +39,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game")
 		static void MoveMouse(FVector2D Input, float DeltaTime);
+
 };

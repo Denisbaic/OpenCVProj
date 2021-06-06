@@ -15,6 +15,11 @@ void UCursor_BPL::DisableVirtualCursor(class APlayerController* PC)
 	FGameAnalogCursor::DisableAnalogCursor(PC);
 }
 
+TSharedPtr<FGameAnalogCursor> UCursor_BPL::GetCursorPtr()
+{
+	return GetMutableDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
+}
+
 bool UCursor_BPL::IsCursorOverInteractableWidget()
 {
 	TSharedPtr<FGameAnalogCursor> Analog = GetDefault<UCamMouseCursorSettings>()->GetAnalogCursor();

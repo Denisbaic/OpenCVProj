@@ -6,6 +6,7 @@
 #include "GameAnalogCursor.h"
 
 #include "CamMouseCursorSettings.h"
+#include "Cursor_BPL.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
@@ -23,10 +24,8 @@ void FGameAnalogCursor::EnableAnalogCursor(class APlayerController* PC, TSharedP
 {
 	if (PC)
 	{
-		TSharedPtr<FGameAnalogCursor> AnalogCursor = MakeShareable(new FGameAnalogCursor(PC));
+		TSharedPtr<FGameAnalogCursor> AnalogCursor = GetMutableDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
 		FSlateApplication::Get().RegisterInputPreProcessor(AnalogCursor);
-
-		GetMutableDefault<UCamMouseCursorSettings>()->SetAnalogCursor(AnalogCursor);
 
 		//setup the new input mode
 		FInputModeGameAndUI NewInputMode;
@@ -127,7 +126,7 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 		Time = Time = FMath::Clamp(Time+ DeltaTime, 0.f, MaxTime);		
 		
 		//grab the cursor acceleration
-		FVector2D const  AccelFromAnalogStick = GetAnalogCursorAccelerationValue(InputVector, DPIScale);
+		FVector2D const  AccelFromAnalogStick = GetAnalogCursorAccelerationValue(InputVector, DPIScale,DeltaTime);
 
 		/*
 		if (!Settings->GetAnalogCursorNoAcceleration())
@@ -266,7 +265,7 @@ void FGameAnalogCursor::TriggerWheel(float InDeltaWheel,float DeltaTime)
 	SlateApp.OnMouseWheel(InDeltaWheel);
 }
 
-FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale)
+FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale, float DeltaTime)
 {
 	const UCamMouseCursorSettings* Settings = GetDefault<UCamMouseCursorSettings>();
 

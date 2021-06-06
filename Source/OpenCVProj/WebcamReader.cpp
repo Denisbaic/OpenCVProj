@@ -3,8 +3,11 @@
 
 #include "WebcamReader.h"
 
+#include "CamMouseCursorSettings.h"
 #include "Cursor_BPL.h"
 #include "FLD_BPL.h"
+#include "GameAnalogCursor.h"
+#include "Kismet/GameplayStatics.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
@@ -18,6 +21,9 @@ AWebcamReader::AWebcamReader()
 	CameraID = 0;
 
 	IsNeedToReactOnGestureChanges = true;
+	IsNeedToProcessDefaultEyebrowsRaised = true;
+	IsNeedToProcessDefaultMouth = true;
+	IsNeedToProcessDefaultSquint = true;
 	//VideoSize = FVector2D(0, 0);
 	//ShouldResize = false;
 	//ResizeDeminsions = FVector2D(320, 240);
@@ -56,9 +62,8 @@ void AWebcamReader::BeginPlay()
 
 		// Do first frame
 		DoProcessing();
-
 	}
-	
+	//UCursor_BPL::OnStopInDeadZone.AddUObject(this, &AWebcamReader::OnStopInDeadZone);
 }
 
 void AWebcamReader::ChangeFrameSize()
@@ -84,7 +89,7 @@ void AWebcamReader::Tick(float DeltaTime)
 		//ValidateFunction(DeltaTime);
 	if(IsNeedToReactOnGestureChanges)
 		DoProcessing();
-	//}	
+	//}
 }
 
 void AWebcamReader::DoProcessing_Implementation()
@@ -94,38 +99,44 @@ void AWebcamReader::DoProcessing_Implementation()
 		UFLD_BPL::ResizeFrame(FinalVideoSize.X, FinalVideoSize.Y);
 	}*/
 
-	static bool LastMouthState = false;
-	
-	if(!LastMouthState && IsMouseFieldSelected && !IsMouthClose)
+	if(IsNeedToProcessDefaultMouth)
 	{
-		IsMouseFieldSelected = false;
-		
-		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(false);
-	}
-	else if(!LastMouthState && !IsMouseFieldSelected && !IsMouthClose)
-	{
-		IsMouseFieldSelected = true;
-		
-		TArray<FVector2D> FacialLandmarks;
-		UFLD_BPL::GetFacialLandmarks(0, FacialLandmarks);
+		static bool LastMouthState = false;
 
-		float const MouseFieldX = FacialLandmarks[30].X - MouseFieldSize.X / 2.f;
-		float const MouseFieldY = FacialLandmarks[30].Y - MouseFieldSize.Y / 2.f;
-		
-		UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
-		UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
-	}
-	
-	LastMouthState = !IsMouthClose;
+		if (!LastMouthState && IsMouseFieldSelected && !IsMouthClose)
+		{
+			IsMouseFieldSelected = false;
 
-	static bool EyebrowsLastState = false;
-	
-	if (IsMouseFieldSelected && !EyebrowsLastState && IsRaisedEyebrows)
-	{
-		bIsClickMode = !bIsClickMode;
-		OnClickModeChange.Broadcast(bIsClickMode);
+			UFLD_BPL::SetIsSelectedNosePositionForMouseControl(false);
+		}
+		else if (!LastMouthState && !IsMouseFieldSelected && !IsMouthClose)
+		{
+			IsMouseFieldSelected = true;
+
+			TArray<FVector2D> FacialLandmarks;
+			UFLD_BPL::GetFacialLandmarks(0, FacialLandmarks);
+
+			float const MouseFieldX = FacialLandmarks[30].X - MouseFieldSize.X / 2.f;
+			float const MouseFieldY = FacialLandmarks[30].Y - MouseFieldSize.Y / 2.f;
+
+			UFLD_BPL::SetMouseField(MouseFieldX, MouseFieldY, MouseFieldSize.X, MouseFieldSize.Y);
+			UFLD_BPL::SetIsSelectedNosePositionForMouseControl(true);
+		}
+
+		LastMouthState = !IsMouthClose;
 	}
-	EyebrowsLastState = IsRaisedEyebrows;
+	
+	if(IsNeedToProcessDefaultEyebrowsRaised)
+	{
+		static bool EyebrowsLastState = false;
+
+		if (IsMouseFieldSelected && !EyebrowsLastState && IsRaisedEyebrows)
+		{
+			bIsClickMode = !bIsClickMode;
+			OnClickModeChange.Broadcast(bIsClickMode);
+		}
+		EyebrowsLastState = IsRaisedEyebrows;
+	}
 	
 	
 	if (IsMouseFieldSelected)
@@ -141,7 +152,7 @@ void AWebcamReader::DoProcessing_Implementation()
 		MouseInput.X = bNeedFlipHorizontalAxis ? MouseInput.X : -MouseInput.X;
 		MouseInput.Y = bNeedFlipVerticalAxis ? MouseInput.Y : -MouseInput.Y;
 
-		if(IsScrollModeEnabled())
+		if(IsNeedToProcessDefaultSquint && IsScrollModeEnabled())
 		{
 			
 			UCursor_BPL::MoveMouse({ 0.f,0.f }, _DeltaTime);
@@ -153,6 +164,16 @@ void AWebcamReader::DoProcessing_Implementation()
 		}
 		else
 		{
+			const UCamMouseCursorSettings* Settings = GetDefault<UCamMouseCursorSettings>();
+			float const  DeadZoneSize = Settings->GetAnalogCursorDeadZone();
+			if(bIsFastClicksMode && MouseInput.Size()<DeadZoneSize)
+			{
+				OnStopInDeadZone(_DeltaTime);
+			}
+			else
+			{
+				OnMove(_DeltaTime);
+			}
 			UCursor_BPL::MoveMouse(MouseInput, _DeltaTime);
 			OnGetInput.Broadcast(MouseInput);
 		}
@@ -197,6 +218,9 @@ Current##EyeSide##EyeTime += DeltaTime;
 
 bool LeftEyeLastState = true;
 bool RightEyeLastState = true;
+bool MouthCloseLastState = false;
+bool SquintLastState = true;
+bool RaisedEyebrowsLastState = false;
 
 void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 {
@@ -221,6 +245,11 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	EYE_VALIDATE(Left, true);
 	EYE_VALIDATE(Right, false);
 
+	if (IsLeftEyeOpen != LeftEyeLastState)
+		OnLeftEyeOpen.Broadcast(IsLeftEyeOpen);
+
+	if (IsRightEyeOpen != RightEyeLastState)
+		OnRightEyeOpen.Broadcast(IsRightEyeOpen);
 	
 	if(IsMouseFieldSelected && bIsClickMode && LeftEyeLastState && RightEyeLastState && !IsLeftEyeOpen && !IsRightEyeOpen)
 	{
@@ -246,6 +275,11 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	}
 	CurrentMouthTime += DeltaTime;
 
+	if (MouthCloseLastState != IsMouthClose)
+		OnMouthStateChanged.Broadcast(!IsMouthClose);
+	MouthCloseLastState = IsMouthClose;
+
+	/*
 	if (CurrentSquintTime > ValidateSquintTime)
 	{
 		CurrentSquintTime = 0.f;
@@ -256,8 +290,14 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 	{
 		SquintRacingTime = !IsLeftEyeOpen && !IsRightEyeOpen ? SquintRacingTime + DeltaTime : SquintRacingTime - DeltaTime;
 	}
+	
 	CurrentSquintTime += DeltaTime;
-
+	*/
+	IsSquint = !IsLeftEyeOpen && !IsRightEyeOpen;
+	if (SquintLastState != IsSquint)
+		OnSquintStateChanged.Broadcast(IsSquint);
+	SquintLastState = IsSquint;
+	
 	if (CurrentRaisedEyebrowsTime > ValidateRaisedEyebrowsTime)
 	{
 		CurrentRaisedEyebrowsTime = 0.f;
@@ -272,11 +312,33 @@ void AWebcamReader::ValidateFunction_Implementation(float DeltaTime)
 		//UE_LOG(LogTemp, Warning, TEXT("%f"), CurrentBar);
 	}
 	CurrentRaisedEyebrowsTime += DeltaTime;
+
+	if (IsRaisedEyebrows != RaisedEyebrowsLastState)
+		OnEyebrowsStateChanged.Broadcast(IsRaisedEyebrows);
+	RaisedEyebrowsLastState = IsRaisedEyebrows;
+	
 }
 
 bool AWebcamReader::IsScrollModeEnabled() const
 {
 	return !bIsClickMode && IsSquint && IsMouseFieldSelected;
+}
+
+float deadzone_time = 0;
+void AWebcamReader::OnStopInDeadZone(float DeltaTime)
+{
+	deadzone_time += DeltaTime;
+	if(deadzone_time >1.f)
+	{
+		UCursor_BPL::LeftClick();
+		deadzone_time = 0.f;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("DEADZONE"));
+}
+
+void AWebcamReader::OnMove(float DeltaTime)
+{
+	deadzone_time = FMath::Clamp(deadzone_time-DeltaTime,0.f,1.f);
 }
 
 void AWebcamReader::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)

@@ -5,6 +5,13 @@
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "WebcamReader.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMouthStateChanged, bool, IsMouthOpen);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEyebrowsStateChanged, bool, IsEyebrowsRaised);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSquintStateChanged, bool, IsSquint);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLeftEyeOpen, bool, IsLeftEyeOpen);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRightEyeOpen, bool, IsRightEyeOpen);
+
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickModeChange,bool,IsEnable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGetInput, FVector2D, Input);
 
@@ -36,7 +43,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = FaceSigns)
 		bool IsNeedToReactOnGestureChanges;
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = FaceSigns)
+		bool IsNeedToProcessDefaultMouth;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = FaceSigns)
+		bool IsNeedToProcessDefaultSquint;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = FaceSigns)
+		bool IsNeedToProcessDefaultEyebrowsRaised;
 	
 	// If the webcam images should be resized every frame
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SizeConfig)
@@ -79,6 +91,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = MouseFieldConfig)
 		bool bIsClickMode = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		bool bIsFastClicksMode = false;
 	
 	UFUNCTION(BlueprintImplementableEvent)
 		void Click();
@@ -94,6 +109,9 @@ public:
 		bool IsMouthClose = true;
 		
 	SET_VALIDATE_PROPERTIES(Mouth)
+
+	UPROPERTY(BlueprintAssignable)
+		FOnMouthStateChanged OnMouthStateChanged;
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateLeftEyeOpenTime;
@@ -102,14 +120,19 @@ public:
 	
 	SET_VALIDATE_PROPERTIES(LeftEye)
 
+	UPROPERTY(BlueprintAssignable)
+		FOnLeftEyeOpen OnLeftEyeOpen;
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateRightEyeOpenTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsRightEyeOpen = true;
-	
+
 	SET_VALIDATE_PROPERTIES(RightEye)
 
+	UPROPERTY(BlueprintAssignable)
+		FOnRightEyeOpen OnRightEyeOpen;
+	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateSquintTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
@@ -117,12 +140,18 @@ public:
 
 	SET_VALIDATE_PROPERTIES(Squint)
 
+	UPROPERTY(BlueprintAssignable)
+		FOnSquintStateChanged OnSquintStateChanged;
+	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 		float ValidateRaisedEyebrowsTime;
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = FaceSigns)
 		bool IsRaisedEyebrows = false;
 
 	SET_VALIDATE_PROPERTIES(RaisedEyebrows)
+
+	UPROPERTY(BlueprintAssignable)
+		FOnEyebrowsStateChanged OnEyebrowsStateChanged;
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Validate)
 	float MAR = 0.6f;
@@ -158,6 +187,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Render)
 	float RenderTimeInterval;
+
+	void OnStopInDeadZone(float DeltaTime);
+	void OnMove(float DeltaTime);
 protected:
 	float _DeltaTime;
 	FTimerHandle RenderTimer_TimerHandler;

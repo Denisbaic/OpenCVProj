@@ -6,6 +6,8 @@
 
 #include "Framework/Application/AnalogCursor.h"
 
+
+
 /**
  * 
  */
@@ -65,12 +67,13 @@ public:
 	void TriggerMouseLMB();
 	void TriggerMouseRMB();
 	void TriggerWheel(float InDeltaWheel, float DeltaTime);
+	
 private:
 	
 	FVector2D InputVector;
 	
 	/** Helper Function. Takes in values from the analog stick, returns a vector that represents acceleration */
-	FVector2D GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale);
+	FVector2D GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale, float DeltaTime);
 
 	/** Current velocity of the cursor */
 	FVector2D Velocity;
@@ -83,6 +86,6 @@ private:
 
 	/** The Player's Context */
 	FLocalPlayerContext PlayerContext;
-
+	
 	float VelocityOnInput;
 };

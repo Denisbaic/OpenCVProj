@@ -6,7 +6,6 @@
 #include "GameAnalogCursor.h"
 
 #include "CamMouseCursorSettings.h"
-#include "Cursor_BPL.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
@@ -24,8 +23,10 @@ void FGameAnalogCursor::EnableAnalogCursor(class APlayerController* PC, TSharedP
 {
 	if (PC)
 	{
-		TSharedPtr<FGameAnalogCursor> AnalogCursor = GetMutableDefault<UCamMouseCursorSettings>()->GetAnalogCursor();
+		TSharedPtr<FGameAnalogCursor> AnalogCursor = MakeShareable(new FGameAnalogCursor(PC));
 		FSlateApplication::Get().RegisterInputPreProcessor(AnalogCursor);
+
+		GetMutableDefault<UCamMouseCursorSettings>()->SetAnalogCursor(AnalogCursor);
 
 		//setup the new input mode
 		FInputModeGameAndUI NewInputMode;
@@ -69,7 +70,7 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 		float const  DPIScale = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(FMath::RoundToInt(ViewportSize.X), FMath::RoundToInt(ViewportSize.Y)));
 
 		const UCamMouseCursorSettings* Settings = GetDefault<UCamMouseCursorSettings>();
-		
+
 		//set the current position if we haven't already
 		/*
 		static float const  MouseMoveSizeBuffer = 2.0f;
@@ -120,13 +121,13 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 			}
 		}
 
-		
-		
+
+
 		float const MaxTime = Settings->GetAnalogCursorAccelerationCurve()->GetLastKey().Time;
-		Time = Time = FMath::Clamp(Time+ DeltaTime, 0.f, MaxTime);		
-		
+		Time = Time = FMath::Clamp(Time + DeltaTime, 0.f, MaxTime);
+
 		//grab the cursor acceleration
-		FVector2D const  AccelFromAnalogStick = GetAnalogCursorAccelerationValue(InputVector, DPIScale,DeltaTime);
+		FVector2D const  AccelFromAnalogStick = GetAnalogCursorAccelerationValue(InputVector, DPIScale);
 
 		/*
 		if (!Settings->GetAnalogCursorNoAcceleration())
@@ -148,9 +149,9 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 			Velocity = AccelFromAnalogStick;
 		}
 		*/
-		
+
 		Velocity = AccelFromAnalogStick;
-		
+
 		//if we are smaller than out min speed, zero it out
 		float const  VelSizeSq = Velocity.SizeSquared();
 		if (VelSizeSq > (MaxSpeed * MaxSpeed))
@@ -175,16 +176,15 @@ void FGameAnalogCursor::Tick(float const  DeltaTime, FSlateApplication& SlateApp
 		FKey const MouseY = EKeys::MouseY;
 		Client->InputAxis(GEngine->GameViewport->Viewport, 0, MouseX, InputVector.X, DeltaTime);
 		Client->InputAxis(GEngine->GameViewport->Viewport, 0, MouseY, InputVector.Y, DeltaTime);
-		
+
 		if (TSharedPtr<FSlateUser> SlateUser = SlateApp.GetUser(GetOwnerUserIndex()))
 		{
 			//update the cursor position
 			UpdateCursorPosition(SlateApp, SlateUser.ToSharedRef(), OldPosition);
-		}			
+		}
 	}
 	//InputVector = FVector2D::ZeroVector;
 }
-
 
 void FGameAnalogCursor::TriggerMouseLMB()
 {
@@ -194,7 +194,7 @@ void FGameAnalogCursor::TriggerMouseLMB()
 	FKey MouseLMB = EKeys::LeftMouseButton;
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseLMB, EInputEvent::IE_Pressed);
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseLMB, EInputEvent::IE_Released);
-	
+
 	//Get our slate application
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 
@@ -225,7 +225,7 @@ void FGameAnalogCursor::TriggerMouseRMB()
 	FKey MouseRMB = EKeys::RightMouseButton;
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseRMB, EInputEvent::IE_Pressed);
 	Client->InputKey(GEngine->GameViewport->Viewport, 0, MouseRMB, EInputEvent::IE_Released);
-	
+
 	//Get our slate application
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 
@@ -248,24 +248,24 @@ void FGameAnalogCursor::TriggerMouseRMB()
 	SlateApp.ProcessMouseButtonUpEvent(MouseEvent);
 }
 
-void FGameAnalogCursor::TriggerWheel(float InDeltaWheel,float DeltaTime)
+void FGameAnalogCursor::TriggerWheel(float InDeltaWheel, float DeltaTime)
 {
-	if(!GEngine)
+	if (!GEngine)
 		return;
 	FViewportClient* Client = GEngine->GameViewport->Viewport->GetClient();
 	FKey MouseAxis = EKeys::MouseWheelAxis;
 
 	InDeltaWheel = FMath::Clamp(InDeltaWheel, -1.f, 1.f);
 	Client->InputAxis(GEngine->GameViewport->Viewport, 0, MouseAxis, InDeltaWheel, DeltaTime);
-	
+
 	//Get our slate application
 	FSlateApplication& SlateApp = FSlateApplication::Get();
 
-	
+
 	SlateApp.OnMouseWheel(InDeltaWheel);
 }
 
-FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale, float DeltaTime)
+FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale)
 {
 	const UCamMouseCursorSettings* Settings = GetDefault<UCamMouseCursorSettings>();
 
@@ -275,7 +275,7 @@ FVector2D FGameAnalogCursor::GetAnalogCursorAccelerationValue(const FVector2D& I
 		float const  DeadZoneSize = Settings->GetAnalogCursorDeadZone();
 		float const  AnalogValSize = InAnalogValues.Size();
 		if (AnalogValSize > DeadZoneSize)
-		{			
+		{
 			RetValue = AccelerationCurve->Eval(Time) * InAnalogValues.GetSafeNormal() * DPIScale;
 			RetValue *= Settings->GetAnalogCursorAccelerationMultiplier() * DPIScale;
 		}

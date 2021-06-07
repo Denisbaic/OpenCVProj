@@ -33,13 +33,13 @@ void UWeaponComponent::Fire_Implementation()
 	LastFireTime = GetWorld()->GetTimeSeconds();
 }
 
-void UWeaponComponent::StartFire()
+void UWeaponComponent::StartFire_Implementation()
 {
 	float const FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.f);
 	GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &UWeaponComponent::Fire, TimeBetweenShots, true, FirstDelay);
 }
 
-void UWeaponComponent::StopFire()
+void UWeaponComponent::StopFire_Implementation()
 {
 	GetOwner()->GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 }

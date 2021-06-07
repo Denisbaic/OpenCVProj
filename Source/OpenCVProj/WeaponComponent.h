@@ -32,10 +32,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		USoundBase* SoundOfFire;
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-		virtual void StartFire();
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-		virtual void StopFire();
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable, Category = "Weapon")
+		void StartFire();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
+		void StopFire();
 	UFUNCTION(BlueprintCallable)
 		FTransform GetMuzzleTransform() const;
 };

@@ -73,7 +73,7 @@ private:
 	FVector2D InputVector;
 	
 	/** Helper Function. Takes in values from the analog stick, returns a vector that represents acceleration */
-	FVector2D GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale, float DeltaTime);
+	FVector2D GetAnalogCursorAccelerationValue(const FVector2D& InAnalogValues, float DPIScale);
 
 	/** Current velocity of the cursor */
 	FVector2D Velocity;

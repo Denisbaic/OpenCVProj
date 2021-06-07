@@ -64,16 +64,8 @@ public:
 		AnalogCursor = InAnalogCursor;
 	}
 
-	TSharedPtr<FGameAnalogCursor> GetAnalogCursor() const
+	FORCEINLINE TSharedPtr<FGameAnalogCursor> GetAnalogCursor() const
 	{
-		if(!AnalogCursor.IsValid())
-		{
-			auto World = GetWorld();
-			if (!World)
-				return nullptr;
-			auto const PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			AnalogCursor.Pin() = MakeShareable(new FGameAnalogCursor(PC));
-		}
 		return AnalogCursor.Pin();
 	}
 

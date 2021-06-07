@@ -35,7 +35,7 @@ void UWeaponComponent::Fire_Implementation()
 
 void UWeaponComponent::StartFire()
 {
-	float FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.f);
+	float const FirstDelay = FMath::Max(LastFireTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.f);
 	GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &UWeaponComponent::Fire, TimeBetweenShots, true, FirstDelay);
 }
 

@@ -92,7 +92,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = MouseFieldConfig)
 		bool bIsClickMode = false;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		bool bIsFastClicksMode = false;
 	
 	UFUNCTION(BlueprintImplementableEvent)
